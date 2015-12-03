@@ -1,0 +1,20 @@
+{
+    "name": "xxxcoltxxx/grid-laravel",
+    "description": "Grid Package for Laravel 5",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexander Paramonov",
+            "email": "xxxcoltxxx@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Paramonov\\Grid\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "Illuminate/support": "~5"
+    }
+}
