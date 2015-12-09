@@ -1,5 +1,6 @@
 <?php
 
 return [
-    'recordsCount' => 'Records count'
+    'recordsCount' => 'Records count',
+    'btn-search' => 'Search'
 ];

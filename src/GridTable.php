@@ -29,8 +29,33 @@ class GridTable
         }
 
         $select = [];
-        foreach ($this->config['columns'] as $field => $title) {
-            $select[] = GridHelper::parseField($field) . " AS " . $field;
+        /**
+         * @var  $field Field
+         */
+        foreach ($this->config['columns'] as $field) {
+            $select[] = $field->parsedFieldName() . " AS " . $field->name;
+            $value = $request->get($field->name, '');
+            if ($value !== '') {
+                $field->filter->getWhere($this->source, $field->parsedFieldName(), $value);
+            }
+        }
+        if (!empty($this->config['filter_all'])) {
+            $field = $this->config['filter_all'];
+            $value = $request->get($field->name, '');
+            if ($value !== '') {
+                if ($field->columns === ['*']) {
+                    $columns = collect($this->config['columns'])->lists('name');
+                } else {
+                    $columns = $field->columns;
+                }
+                $this->source->where(function(Builder $source) use ($field, $columns, $value) {
+                    $filter = $field->filter;
+                    foreach ($columns as $column) {
+                        $field_str = GridHelper::parseField($column);
+                        $filter->getWhere($source, $field_str, $value, 'or');
+                    }
+                });
+            }
         }
         $this->source->select($select);
         $rows = $this->source->paginate($limit);
