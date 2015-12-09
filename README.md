@@ -1,4 +1,15 @@
 # grid-laravel
+
+`composer require xxxcoltxxx/grid-laravel`
+
+`config/app.php:`
+```php
+$providers => [
+    ...
+    Paramonov\Grid\GridServiceProvider::class,
+],
+```
+
 `FooController:`
 ```php
 $cfg = [
