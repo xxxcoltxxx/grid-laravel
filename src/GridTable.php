@@ -53,7 +53,10 @@ class GridTable
         } else {
             $limit = $searches['pagination']['items_per_page'];
         }
+
+        $main_table = $this->data_provider->query()->getModel()->getTable();
         // Добавляем селекты для уникальности полей в выборке
+        $this->data_provider->query()->addSelect($main_table . '.*');
         foreach ($columns as $field) {
             if (strpos($field, '.')) {
                 $this->data_provider->query()->addSelect($field . ' as ' . str_replace('.', ':', $field));
@@ -68,7 +71,7 @@ class GridTable
         // TODO: Избавиться от проверки на таблицу
         if ($sorting) {
             if (!strpos($sorting['field'], '.')) {
-                $sorting['field'] = $this->data_provider->query()->getModel()->getTable() . '.' . $sorting['field'];
+                $sorting['field'] = $main_table . '.' . $sorting['field'];
             }
             $this->data_provider->query()->orderBy($sorting['field'], $sorting['dir']);
         }

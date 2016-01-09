@@ -4,17 +4,11 @@ app.controller('GridCtrl', ['$scope', '$http', '$cookies', '$timeout', '$q', fun
         sorting: {},
         pagination: {
             current_page: 1,
-            items_per_page: '10',
-            max_size: 5
+            items_per_page: '10'
         }
     };
-    $scope.datePickerOptions = {};
     $scope.columns_hider = [];
     $scope.dataUrl = "";
-
-    $http.get('/admin/date-range-picker.json', {cache: true}).success(function(json) {
-        $scope.datePickerOptions = json;
-    });
 
     $scope.loading = false;
 

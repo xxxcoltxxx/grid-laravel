@@ -11,6 +11,7 @@
 * bootstrap-select
 * angular-bootstrap-select
 * moment (ставится автоматически из зависимостей bootstrap-daterangepicker)
+* angular-bootstrap
 
 Следующие зависимости не обязательны. Вы можете руками скачать необходимые js-библиотеки и подключить их в шаблоне. В инструкции по установке рассматривается способ установки через эти утилиты и на ОС Ubuntu 14.04
 
@@ -52,6 +53,7 @@ bower install --save bootstrap-daterangepicker
 bower install --save angular-daterangepicker
 bower install --save bootstrap-select
 bower install --save angular-bootstrap-select
+bower install --save angular-bootstrap
 ```
 
 Добавьте ServiceProvider в файл `config/app.php:`
@@ -65,14 +67,6 @@ $providers => [
 Скопируйте views, lang и assets пакета, которые вы в последствии можете изменять и кастомизировать "под себя":
 ```
 php artisan vendor:publish --provider="Paramonov\Grid\GridServiceProvider"
-```
-
-Добавьте зависимости daterangepicker и ngCookies в ваше angular-приложение (или создайте новый модуль).
--- Я не спец по angularjs, поэтому, возможно, кто-нибудь из вас предложет не кривое решение, чтобы не нужно было использовать в качестве переменной модуля `app` и не нужно было указывать зависимости:
-
-`resources/assets/js/angular.init.js:`
-```javascript
-var app = angular.module('app', ['daterangepicker', 'ngCookies']);
 ```
 
 Сконфигурируйте gulp, чтобы все js и css объединились в два файла. На production их дополнительно можно минифицировать, добавить ключ `--production` при запуске gulp:
@@ -92,7 +86,8 @@ elixir(function(mix) {
         'bower_components/angular-bootstrap-select/build/angular-bootstrap-select.js',
         'bower_components/bootstrap-daterangepicker/daterangepicker.js',
         'bower_components/angular-daterangepicker/js/angular-daterangepicker.js',
-        'resources/assets/js/angular.init.js',
+        'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
+        'resources/assets/vendor/grid/js/angular.init.js',
         'resources/assets/vendor/grid/js/GridCtrl.js'
     ], 'public/js/scripts.js', '.');
 
@@ -145,7 +140,7 @@ class UsersDataProvider implements GridDataProvider
     public function query()
     {
         if (is_null($this->query)) {
-            $this->query = User::query();
+            $this->query = User::leftJoin('user_companies', 'user_companies.id', '=', 'users.company_id');
         }
         return $this->query;
     }
@@ -210,6 +205,26 @@ class UsersDataProvider implements GridDataProvider
                         $query->where('updated_at', '>=', $start_date);
                         $query->where('updated_at', '<=', $end_date);
                     }
+                },
+                'user_companies.title' => function(Builder $query, $search) {
+                    if (is_array($search)) {
+                        $query->whereIn('users.company_id', $search);
+                    }
+                },
+                'all' => function(Builder $query, $search) {
+                    if (is_string($search)) {
+                        $query->where(function(Builder $query) use ($search) {
+                            if (is_numeric($search)) {
+                                $query->where('users.id', '=', $search, 'or');
+                            }
+                            $query->where('users.name', 'ilike', '%' . $search . '%', 'or');
+                            $query->where('users.email', 'ilike', '%' . $search . '%', 'or');
+                            $query->where('user_companies.title', 'ilike', '%' . $search . '%', 'or');
+                            $query->whereRaw('CAST(users.created_at AS TEXT) ilike ?', ['%' . $search . '%'], 'or');
+                            $query->whereRaw('CAST(users.updated_at AS TEXT) ilike ?', ['%' . $search . '%'], 'or');
+                        });
+
+                    }
                 }
             ];
         }
@@ -227,7 +242,6 @@ class UsersDataProvider implements GridDataProvider
         return $this->default_sorting;
     }
 }
-
 ```
 
 `app/Http/Controllers/UsersController.php:`
@@ -279,6 +293,11 @@ class UsersController extends Controller
             'title' => 'E-Mail',
             'type' => 'string',
             'cell' => "<a href='mailto:@{{ item.email }}'>@{{ item.email }}</a>"
+        ],
+        'user_companies.title' => [
+            'title' => 'Компания',
+            'type' => 'multiselect',
+            'options' => \App\UserCompany::query()->lists('title', 'id')
         ],
         'created_at' => [
             'title' => 'Создан',

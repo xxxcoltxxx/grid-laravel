@@ -27,11 +27,6 @@
                             @if (in_array('column_hider', $components))
                                 @include('grid::components.column_hider')
                             @endif
-
-                            {{-- Фильтр по активным итемам --}}
-                            @if (in_array('active', $components))
-                                @include('grid::components.active')
-                            @endif
                         </div>
                     </div>
                 </td>
