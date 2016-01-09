@@ -3,6 +3,7 @@
     "description": "Grid Package for Laravel 5",
     "license": "MIT",
     "version": "1.0",
+    "minimum-stability": "stable",
     "authors": [
         {
             "name": "Alexander Paramonov",
