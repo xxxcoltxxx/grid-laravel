@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'recordsCount' => 'Кол-во записей на странице',
-    'btn-search' => 'Поиск'
+    'recordsCount' => 'Страница ',
+    'search-all' => 'Поиск по всем столбцам'
 ];

@@ -1,0 +1,25 @@
+.table-grid button,
+.table-grid input,
+.table-grid .btn{
+    font-size:13px ;
+}
+.table-grid .bootstrap-select{
+    margin-top:-2px;
+}
+.table-grid .text-bolder {
+    font-weight: 700;
+}
+.table-grid th {
+    text-align: center;
+}
+.table-grid {
+    position: relative;
+}
+.table-grid .grid-loader {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background-color: #FFFFFF;
+    opacity: 0.5;
+}

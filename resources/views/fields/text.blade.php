@@ -1,1 +1,0 @@
-<input type="text" name="{{ $field->name }}" value="{{ request($field->name) }}" class="form-control" placeholder="{{ $field->title }}" />

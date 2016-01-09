@@ -2,6 +2,7 @@
     "name": "xxxcoltxxx/grid-laravel",
     "description": "Grid Package for Laravel 5",
     "license": "MIT",
+    "version": "1.0",
     "authors": [
         {
             "name": "Alexander Paramonov",
@@ -13,8 +14,8 @@
             "Paramonov\\Grid\\": "src/"
         }
     },
-    "minimum-stability": "dev",
     "require": {
-        "Illuminate/support": "~5"
+        "Illuminate/support": "~5",
+        "illuminate/html": "*"
     }
 }

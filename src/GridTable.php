@@ -1,77 +1,111 @@
 <?php
 
+
 namespace Paramonov\Grid;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 
 class GridTable
 {
-    /** Builder */
-    private $source;
-    private $config;
+    private $data_provider;
 
-    public function __construct(Builder $source, array $config)
+    public function __construct(GridDataProvider $data_provider)
     {
-        $this->source = $source;
-        $this->config = $config;
+        $this->data_provider = $data_provider;
     }
 
-    public function render()
+    protected function buildQuery($searches, $prefix = '')
     {
-        $request = Request::capture();
-        $limit      = $request->get('limit', reset($this->config['limits']));
-        $sort       = $request->get('sort', !empty($cfg['sort']) ? $cfg['sort']['field'] : '');
-        $direction  = $request->get('direction', !empty($cfg['sort']) ? $cfg['sort']['direction'] : '');
-
-        if ($sort && $direction) {
-            $this->source->orderBy(GridHelper::parseField($sort), $direction ?: 'asc');
+        if (!is_array($searches)) {
+            return;
         }
 
-        $select = [];
-        /**
-         * @var  $field Field
-         */
-        foreach ($this->config['columns'] as $field) {
-            $select[] = $field->parsedFieldName() . " AS " . $field->name;
-            $value = $request->get($field->name, '');
-            if ($value !== '') {
-                $field->filter->getWhere($this->source, $field->parsedFieldName(), $value);
+        $filters = $this->data_provider->filters();
+        foreach ($searches as $alias => $search) {
+            $alias = $prefix . $alias;
+            if (!$search) {
+                continue;
+            }
+
+            if (isset($filters[$alias])) {
+                $filters[$alias] ($this->data_provider->query(), $search);
+            } else {
+                $this->buildQuery($search, $alias . '.');
             }
         }
-        if (!empty($this->config['filter_all'])) {
-            $field = $this->config['filter_all'];
-            $value = $request->get($field->name, '');
-            if ($value !== '') {
-                if ($field->columns === ['*']) {
-                    $columns = collect($this->config['columns'])->lists('name');
+    }
+
+    public function getData($columns = [])
+    {
+        // TODO: Хранить где-то колонки, а не вытаскивать их из фильтров
+        if (!$columns) {
+            $columns = array_keys($this->data_provider->filters());
+        }
+        $request = \Request::capture();
+        $searches = json_decode($request->input('search'), true);
+        $sorting = json_decode($request->input('sorting'), true);
+        $limit = $request->get('limit', $this->data_provider->pagination()->getDefault());
+        $page = $request->get('page', 1);
+
+        if (empty($sorting)) {
+            $sorting = $this->getSorting();
+        }
+        // Добавляем селекты для уникальности полей в выборке
+        foreach ($columns as $field) {
+            if (strpos($field, '.')) {
+                $this->data_provider->query()->addSelect($field . ' as ' . str_replace('.', ':', $field));
+            }
+        }
+
+        $this->buildQuery($searches);
+        $grid['total'] = $this->data_provider->query()->count();
+        $grid['limit'] = $limit;
+        $grid['sorting'] = $sorting;
+
+        // TODO: Избавиться от проверки на таблицу
+        if ($sorting) {
+            if (!strpos($sorting['field'], '.')) {
+                $sorting['field'] = $this->data_provider->query()->getModel()->getTable() . '.' . $sorting['field'];
+            }
+            $this->data_provider->query()->orderBy($sorting['field'], $sorting['dir']);
+        }
+
+        // TODO: Избавиться от костыля с копированием массива
+        $data = $this->data_provider->query()->take($limit)->skip(($page - 1) * $limit)->get()->toArray();
+        $grid['data'] = [];
+        foreach ($data as $i => $item) {
+            foreach ($item as $key => $value) {
+                $pairs = explode(':', $key);
+                if (count($pairs) > 1) {
+                    $grid['data'] [$i] [$pairs[0]] [$pairs[1]] = $value;
                 } else {
-                    $columns = $field->columns;
+                    $grid['data'] [$i] [$key] = $value;
                 }
-                $this->source->where(function(Builder $source) use ($field, $columns, $value) {
-                    $filter = $field->filter;
-                    foreach ($columns as $column) {
-                        $field_str = GridHelper::parseField($column);
-                        $filter->getWhere($source, $field_str, $value, 'or');
-                    }
-                });
             }
         }
-        $this->source->select($select);
-        $rows = $this->source->paginate($limit);
-
-        foreach ($request->all() as $key => $value) {
-            $rows->appends($key, $value);
-        }
-
-        return view('grid::main', [
-            'config' => $this->config,
-            'rows' => $rows
-        ])->render();
+        return $grid;
     }
 
-    public function __toString()
+    public function render($columns, array $components = ['search_all', 'active', 'column_hider'])
     {
-        return $this->render();
+        return view('grid::main', [
+            'data_provider' => $this->data_provider,
+            'columns' => $columns,
+            'sorting' => $this->getSorting(),
+            'components' => $components
+        ]);
+    }
+
+    public function getSorting()
+    {
+        if (isset($_COOKIE['data_provider'])) {
+            $data_provider = json_decode($_COOKIE['data_provider'], true);
+            if (!empty($data_provider['sorting'])) {
+                return $data_provider['sorting'];
+            } else {
+                return $this->data_provider->getDefaultSorting();
+            }
+        } else {
+            return $this->data_provider->getDefaultSorting();
+        }
     }
 }

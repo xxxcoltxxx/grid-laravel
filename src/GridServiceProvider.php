@@ -2,7 +2,9 @@
 
 namespace Paramonov\Grid;
 
+
 use Illuminate\Support\ServiceProvider;
+
 
 class GridServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,7 @@ class GridServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'grid');
 
         $this->publishes([
+            __DIR__ . '/../resources/assets' => base_path('resources/assets/vendor/grid'),
             __DIR__ . '/../resources/views' => base_path('resources/views/vendor/grid'),
             __DIR__ . '/../resources/lang' => base_path('resources/lang/vendor/grid'),
         ]);
