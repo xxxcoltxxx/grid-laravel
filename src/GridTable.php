@@ -42,16 +42,21 @@ class GridTable
         }
         $request = \Request::capture();
         $searches = json_decode($request->input('search'), true);
+        $pagination = json_decode($request->input('pagination'), true);
         $sorting = json_decode($request->input('sorting'), true);
-        $page = $request->get('page', 1);
 
         if (empty($sorting)) {
             $sorting = $this->getSorting();
         }
-        if (empty($searches['pagination']['items_per_page'])) {
+        if (empty($pagination['items_per_page'])) {
             $limit = $this->data_provider->pagination()->getLimit();
         } else {
-            $limit = $searches['pagination']['items_per_page'];
+            $limit = $pagination['items_per_page'];
+        }
+        if (empty($pagination['current_page'])) {
+            $page = 1;
+        } else {
+            $page = $pagination['current_page'];
         }
 
         $main_table = $this->data_provider->query()->getModel()->getTable();
