@@ -2,7 +2,6 @@
     <input type="text" class="input-sm form-control"
            date-range-picker
            ng-model="data_provider.search.{{ $field }}"
-           options="datePickerOptions"
            ng-init="clearPicker('{{ $field }}')"
     />
     <span class="input-group-btn">

@@ -43,11 +43,15 @@ class GridTable
         $request = \Request::capture();
         $searches = json_decode($request->input('search'), true);
         $sorting = json_decode($request->input('sorting'), true);
-        $limit = $request->get('limit', $this->data_provider->pagination()->getDefault());
         $page = $request->get('page', 1);
 
         if (empty($sorting)) {
             $sorting = $this->getSorting();
+        }
+        if (empty($searches['pagination']['items_per_page'])) {
+            $limit = $this->data_provider->pagination()->getLimit();
+        } else {
+            $limit = $searches['pagination']['items_per_page'];
         }
         // Добавляем селекты для уникальности полей в выборке
         foreach ($columns as $field) {
