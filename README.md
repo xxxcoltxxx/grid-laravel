@@ -1,10 +1,51 @@
 # grid-laravel
+## Зависимости
 
+* jquery (для библиотеки с выбором дат в фильтрации daterangepicker и bootstrap-select, которая используется для стилизации select. Нативных аналогов не нашёл)
+* angularjs
+* bootstrap
+* font-awesome
+* angular-cookies
+* bootstrap-daterangepicker
+* angular-daterangepicker
+* bootstrap-select
+* angular-bootstrap-select
+* moment (ставится автоматически из зависимостей bootstrap-daterangepicker)
+
+Следующие зависимости не обязательны. Вы можете руками скачать необходимые js-библиотеки и подключить их в шаблоне. В инструкции по установке рассматривается способ установки через эти утилиты и на ОС Ubuntu 14.04
+
+* npm
+* bower
+* gulp
+* laravel-elixir
+
+Установка npm
+```
+sudo apt-get install npm npdejs-legacy
+```
+Установка bower
+```
+npm i -g bower
+```
+Установка gulp
+```
+npm i gulp
+```
+Установка laravel-elixir (из папки с проектом)
+```
+npm i
+```
+
+## Установка пакета
+
+Добавьте пакет в проект:
 `composer require xxxcoltxxx/grid-laravel`
 
+Установите js-библиотеки:
 ```
 bower install --save jquery
 bower install --save bootstrap
+bower install --save font-awesome
 bower install --save angular
 bower install --save angular-cookies
 bower install --save bootstrap-daterangepicker
@@ -13,7 +54,7 @@ bower install --save bootstrap-select
 bower install --save angular-bootstrap-select
 ```
 
-`config/app.php:`
+Добавьте ServiceProvider в файл `config/app.php:`
 ```php
 $providers => [
     ...
@@ -21,9 +62,20 @@ $providers => [
 ],
 ```
 
+Скопируйте views, lang и assets пакета, которые вы в последствии можете изменять и кастомизировать "под себя":
 ```
 php artisan vendor:publish --provider="Paramonov\Grid\GridServiceProvider"
 ```
+
+Добавьте зависимости daterangepicker и ngCookies в ваше angular-приложение (или создайте новый модуль).
+-- Я не спец по angularjs, поэтому, возможно, кто-нибудь из вас предложет не кривое решение, чтобы не нужно было использовать в качестве переменной модуля `app` и не нужно было указывать зависимости:
+
+`resources/assets/js/angular.init.js:`
+```javascript
+var app = angular.module('app', ['daterangepicker', 'ngCookies']);
+```
+
+Сконфигурируйте gulp, чтобы все js и css объединились в два файла. На production их дополнительно можно минифицировать, добавить ключ `--production` при запуске gulp:
 
 `gulpfile.js:`
 ```javascript
@@ -31,77 +83,80 @@ var elixir = require('laravel-elixir');
 
 elixir(function(mix) {
     mix.scripts([
-        'jquery/dist/jquery.js',
-        'angular/angular.js',
-        'angular-cookies/angular-cookies.js',
-        'bootstrap-select/dist/js/bootstrap-select.js',
-        'bootstrap-daterangepicker/daterangepicker.js',
-        'angular-daterangepicker/js/angular-daterangepicker.js',
-        'angular-bootstrap-select/build/angular-bootstrap-select.js',
-        'resources/vendor/assets/js/GridCtrl.js'
-    ], 'public/js/scripts.js');
+        'bower_components/jquery/dist/jquery.js',
+        'bower_components/angular/angular.js',
+        'bower_components/bootstrap/dist/js/bootstrap.js',
+        'bower_components/angular-cookies/angular-cookies.js',
+        'bower_components/moment/moment.js',
+        'bower_components/bootstrap-select/dist/js/bootstrap-select.js',
+        'bower_components/angular-bootstrap-select/build/angular-bootstrap-select.js',
+        'bower_components/bootstrap-daterangepicker/daterangepicker.js',
+        'bower_components/angular-daterangepicker/js/angular-daterangepicker.js',
+        'resources/assets/js/angular.init.js',
+        'resources/assets/vendor/grid/js/GridCtrl.js'
+    ], 'public/js/scripts.js', '.');
 
     mix.styles([
-        'bootstrap/dist/css/bootstrap.css',
-        'bootstrap-daterangepicker/daterangepicker.css',
-        'bootstrap-select/dist/css/bootstrap-select.css',
-        'select2/dist/css/select2.css',
-        'bootstrap-select/dist/css/bootstrap-select.css'
-        'resources/vendor/assets/css/grid.css'
-    ], 'public/css/styles.css');
+        'bower_components/bootstrap/dist/css/bootstrap.css',
+        'bower_components/font-awesome/css/font-awesome.css',
+        'bower_components/bootstrap-select/dist/css/bootstrap-select.css',
+        'bower_components/bootstrap-daterangepicker/daterangepicker.css',
+        'resources/assets/vendor/grid/css/grid.css'
+    ], 'public/css/styles.css', '.');
 
+    mix.copy(
+        'bower_components/bootstrap/dist/fonts',
+        'public/fonts'
+    );
+    mix.copy(
+        'bower_components/font-awesome/fonts',
+        'public/fonts'
+    );
 });
 ```
 
+Запустите gulp
 ```
 gulp
 ```
 
-`GridDataProviders/ProjectsDataProvider.php`
+Создайте `DataProvider`, который должен реализовывать интерфейс `GridDataProvider`. Критически важно, чтобы метод query() возвращал всегда один и тот же объект типа Builder '''НЕ новый'''. Например, `app/GridDataProviders/UsersDataProvider.php`
 ```php
 
 namespace App\GridDataProviders;
 
 
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use App\Project;
 use Paramonov\Grid\GridDataProvider;
 use Paramonov\Grid\GridPagination;
 
-
-class ProjectsDataProvider implements GridDataProvider
+class UsersDataProvider implements GridDataProvider
 {
-    private $query;
-    private $pagination;
-    private $filters;
-
-    public function __construct()
-    {
-        $this->query = $this->query();
-        $this->pagination = $this->pagination();
-        $this->filters = $this->filters();
-    }
+    public $query;
+    public $pagination;
+    public $filters;
+    public $default_sorting;
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function query()
     {
         if (is_null($this->query)) {
-            $this->query = Project::leftJoin('project_statuses', 'projects.project_status_id', '=', 'project_statuses.id')
-            ->leftJoin('project_types', 'projects.project_type_id', '=', 'project_types.id');
+            $this->query = User::query();
         }
         return $this->query;
     }
 
     /**
-     * @return \Paramonov\Grid\GridPagination
+     * @return GridPagination
      */
     public function pagination()
     {
         if (is_null($this->pagination)) {
-            $this->pagination = new GridPagination();
+            $this->pagination = new GridPagination([5, 10, 15, 25, 50]);
         }
         return $this->pagination;
     }
@@ -113,53 +168,49 @@ class ProjectsDataProvider implements GridDataProvider
     {
         if (is_null($this->filters)) {
             $this->filters = [
-                'all' => function (Builder $query, $search) {
-                    $query->where(function (Builder $query) use ($search) {
-                        $query->likeField($search, 'projects.id', false, 'or');
-                        $query->likeField($search, 'projects.title', true, 'or');
-                        $query->likeField($search, 'project_types.title', true, 'or');
-                        $query->likeField($search, 'project_statuses.title', true, 'or');
-                        $query->likeDateTimeField($search, 'projects.created_at', trans('datetimes.formats.datetime.sql'), 'or');
-                        $query->likeDateTimeField($search, 'projects.updated_at', trans('datetimes.formats.datetime.sql'), 'or');
-                    });
-                },
-                'active' => function (Builder $query, $search) {
-                    if (in_array(0, $search)) {
-                        if (in_array(1, $search)) {
-                            $query->withTrashed();
-                        } else {
-                            $query->onlyTrashed();
-                        }
+                'id' => function(Builder $query, $search) {
+                    if (is_numeric($search)) {
+                        $query->where('users.id', $search);
                     }
                 },
-                'id' => function (Builder $query, $search) {
-                    $query->likeField($search, 'projects.id', false, 'and');
+                'name' => function(Builder $query, $search) {
+                    if (is_string($search)) {
+                        $query->where('users.name', 'ilike', '%' . $search . '%');
+                    }
                 },
-                'title' => function (Builder $query, $search) {
-                    $query->likeField($search, 'projects.title', true, 'and');
+                'email' => function(Builder $query, $search) {
+                    if (is_string($search)) {
+                        $query->where('users.email', 'ilike', '%' . $search . '%');
+                    }
                 },
-                'project_statuses.title' => function (Builder $query, $search) {
-                    $query->whereIn('project_status_id', $search);
-                },
-                'project_types.title' => function (Builder $query, $search) {
-                    $query->where('project_type_id', $search);
-                },
-                'created_at' => function (Builder $query, $search) {
-                    if ($search['startDate'] && $search['endDate']) {
+                'created_at' => function(Builder $query, $search) {
+                    if (
+                        is_array($search)
+                        && array_key_exists('startDate', $search)
+                        && array_key_exists('endDate', $search)
+                        && !is_null($search['startDate'])
+                        && !is_null($search['endDate'])
+                    ) {
                         $start_date = Carbon::parse($search['startDate']);
                         $end_date = Carbon::parse($search['endDate']);
-                        $query->whereRaw('TO_CHAR(projects.created_at, \'YYYY-MM-DD\') >= ?', [$start_date], 'and');
-                        $query->whereRaw('TO_CHAR(projects.created_at, \'YYYY-MM-DD\') <= ?', [$end_date], 'and');
+                        $query->where('created_at', '>=', $start_date);
+                        $query->where('created_at', '<=', $end_date);
                     }
                 },
-                'updated_at' => function (Builder $query, $search) {
-                    if ($search['startDate'] && $search['endDate']) {
+                'updated_at' => function(Builder $query, $search) {
+                    if (
+                        is_array($search)
+                        && array_key_exists('startDate', $search)
+                        && array_key_exists('endDate', $search)
+                        && !is_null($search['startDate'])
+                        && !is_null($search['endDate'])
+                    ) {
                         $start_date = Carbon::parse($search['startDate']);
                         $end_date = Carbon::parse($search['endDate']);
-                        $query->whereRaw('TO_CHAR(projects.updated_at, \'YYYY-MM-DD\') >= ?', [$start_date], 'and');
-                        $query->whereRaw('TO_CHAR(projects.updated_at, \'YYYY-MM-DD\') <= ?', [$end_date], 'and');
+                        $query->where('updated_at', '>=', $start_date);
+                        $query->where('updated_at', '<=', $end_date);
                     }
-                },
+                }
             ];
         }
         return $this->filters;
@@ -170,73 +221,93 @@ class ProjectsDataProvider implements GridDataProvider
      */
     public function getDefaultSorting()
     {
-        return ['field' => 'id', 'dir' => 'asc'];
+        if (is_null($this->default_sorting)) {
+            $this->default_sorting = ['field' => 'id', 'dir' => 'asc'];
+        }
+        return $this->default_sorting;
     }
 }
+
 ```
 
-`app/Http/Controllers/ProjectsController.php:`
+`app/Http/Controllers/UsersController.php:`
 ```php
 
-class ProjectsController extends Controller
+namespace App\Http\Controllers;
+
+
+use App\GridDataProviders\UsersDataProvider;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Paramonov\Grid\GridTable;
+
+class UsersController extends Controller
 {
     public function index(Request $request)
     {
-        $grid = new GridTable(new ProjectsDataProvider());
+        $grid = new GridTable(new UsersDataProvider());
         if ($request->get('getData')) {
             return $grid->getData();
         }
-        return view('projects.index', compact('grid'));
+        return view('users.index', compact('grid'));
     }
-    ...
-
 }
 ```
 
-`resources/views/projects/index.blade.php`
+`resources/views/users/index.blade.php`
 ```php
-    ...
-
-    <link href="/public/css/styles.css" rel="stylesheet" />
-    <script src="/public/js/scripts.js" type="application/javascript"></script>
-    {!! $grid->render(
-        [
-            'id' => [
-                'title' => 'ID',
-                'type' => 'string',
-                'class' => 'col-lg-1'
-            ],
-            'title' => [
-                'title' => 'Проект',
-                'type' => 'string',
-                'cell' => "<a href='/projects/@{{ item.id }}/edit'>@{{ item.title }}</a>"
-            ],
-            'project_statuses.title' => [
-                'title' => 'Статус',
-                'type' => 'multiselect',
-                'options' => \Modules\Projects\Entities\ProjectStatus::lists('title', 'id')
-            ],
-            'project_types.title' => [
-                'title' => 'Тип',
-                'type' => 'select',
-                'options' => \Modules\Projects\Entities\ProjectType::lists('title', 'id')->prepend('---', '')
-            ],
-            'created_at' => [
-                'title' => 'Создан',
-                'type' => 'daterange',
-                'cell' => "@{{ item.created_at | date:'dd.MM.yyyy HH:mm' }}",
-                'data-class' => 'text-center',
-                'class' => 'col-lg-2'
-            ],
-            'updated_at' => [
-                'title' => 'Обновлен',
-                'type' => 'daterange',
-                'cell' => "@{{ item.created_at | date:'dd.MM.yyyy HH:mm' }}",
-                'data-class' => 'text-center',
-                'class' => 'col-lg-2'
-            ]
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Пользователи</title>
+    <link href="/css/styles.css" rel="stylesheet" />
+</head>
+<body ng-app="app">
+{!!
+    $grid->render([
+        'id' => [
+            'title' => 'ИД',
+            'type' => 'string',
+            'class' => 'col-lg-1'
+        ],
+        'name' => [
+            'title' => 'Имя',
+            'type' => 'string',
+        ],
+        'email' => [
+            'title' => 'E-Mail',
+            'type' => 'string',
+            'cell' => "<a href='mailto:@{{ item.email }}'>@{{ item.email }}</a>"
+        ],
+        'created_at' => [
+            'title' => 'Создан',
+            'type' => 'daterange',
+            'cell' => "@{{ item.created_at | date:'dd.MM.yyyy HH:mm' }}",
+            'data-class' => 'text-center',
+            'class' => 'col-lg-2'
+        ],
+        'updated_at' => [
+            'title' => 'Обновлен',
+            'type' => 'daterange',
+            'cell' => "@{{ item.created_at | date:'dd.MM.yyyy HH:mm' }}",
+            'data-class' => 'text-center',
+            'class' => 'col-lg-2'
         ]
-    ) !!}
+    ])
+ !!}
 
-    ...
+    <script src="/js/scripts.js" type="application/javascript"></script>
+</body>
+</html>
 ```
+
+`app/Http/routes.php:`
+```php
+...
+
+Route::get('/', ['uses' => 'UsersController@index']);
+
+...
+```
+
