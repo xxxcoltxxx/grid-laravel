@@ -1,11 +1,3 @@
-.table-grid button,
-.table-grid input,
-.table-grid .btn{
-    font-size:13px ;
-}
-.table-grid .bootstrap-select{
-    margin-top:-2px;
-}
 .table-grid .text-bolder {
     font-weight: 700;
 }

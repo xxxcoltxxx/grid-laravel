@@ -1,4 +1,5 @@
 <select class="form-control selectpicker input-sm"
+        data-style="btn-primary btn-sm"
         multiple
         ng-model="columns_hider"
         data-selected-text-format="static"

@@ -6,7 +6,7 @@
     <div class="grid-loader" ng-show="loading"></div>
 
     {{-- Grid --}}
-    <table class="table table-bordered">
+    <table class="table table-bordered table-condensed table-hover">
         <thead>
             <tr>
                 <td colspan="{{ count($columns) }}">
