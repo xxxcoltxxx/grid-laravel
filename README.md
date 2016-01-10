@@ -1,5 +1,7 @@
 # grid-laravel
 
+[![Join the chat at https://gitter.im/xxxcoltxxx/grid-laravel](https://badges.gitter.im/xxxcoltxxx/grid-laravel.svg)](https://gitter.im/xxxcoltxxx/grid-laravel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 * [Демо](http://grid-laravel.colt-web.ru/)
 * [Исходный код демо](https://github.com/xxxcoltxxx/grid-laravel-example)
 
