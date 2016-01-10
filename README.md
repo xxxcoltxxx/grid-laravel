@@ -45,10 +45,18 @@ npm i
 
 ## Установка пакета
 
-Добавьте пакет в проект:
+### Добавьте пакет в проект:
 `composer require xxxcoltxxx/grid-laravel`
 
-Установите js-библиотеки:
+### Добавьте ServiceProvider в файл `config/app.php:`
+```php
+$providers => [
+    ...
+    Paramonov\Grid\GridServiceProvider::class,
+],
+```
+
+### Установите js-библиотеки:
 ```
 bower install --save jquery
 bower install --save bootstrap
@@ -62,21 +70,22 @@ bower install --save angular-bootstrap-select
 bower install --save angular-bootstrap
 ```
 
-Добавьте ServiceProvider в файл `config/app.php:`
-```php
-$providers => [
-    ...
-    Paramonov\Grid\GridServiceProvider::class,
-],
-```
-
-Скопируйте views, lang и assets пакета, которые вы в последствии можете изменять и кастомизировать "под себя":
+### Скопируйте views, lang и assets пакета, которые вы в последствии можете изменять и кастомизировать "под себя":
 ```
 php artisan vendor:publish --provider="Paramonov\Grid\GridServiceProvider"
 ```
+### Если у вас angular-приложение
+Добавьте зависимость `ngGrid` в ваш модуль:
+```javascript
+angular.module('app', ['ngGrid'])
 
-Сконфигурируйте gulp, чтобы все js и css объединились в два файла. На production их дополнительно можно минифицировать, добавить ключ `--production` при запуске gulp:
+...
+```
+### Если у вас не angular-приложение
+Просто добавьте в конфигурацию `gulp` файл `angular.init.js`, как в примере ниже.
 
+### Сконфигурируйте gulp
+Это нужно для того, чтобы все js и css объединились в два файла:
 `gulpfile.js:`
 ```javascript
 var elixir = require('laravel-elixir');
@@ -93,7 +102,7 @@ elixir(function(mix) {
         'bower_components/bootstrap-daterangepicker/daterangepicker.js',
         'bower_components/angular-daterangepicker/js/angular-daterangepicker.js',
         'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
-        'resources/assets/vendor/grid/js/angular.init.js',
+        'resources/assets/vendor/grid/js/angular.init.js', // Этот файл нужно подключить, если у вас не angular-приложение
         'resources/assets/vendor/grid/js/GridCtrl.js'
     ], 'public/js/scripts.js', '.');
 
@@ -116,12 +125,26 @@ elixir(function(mix) {
 });
 ```
 
-Запустите gulp
+### Запустите gulp
+На production их дополнительно можно минифицировать, добавить ключ `--production` при запуске gulp:
 ```
 gulp
 ```
 
-Создайте `DataProvider`, который должен реализовывать интерфейс `GridDataProvider`. Критически важно, чтобы метод query() возвращал всегда один и тот же объект типа Builder '''НЕ новый'''. Например, `app/GridDataProviders/UsersDataProvider.php`
+## Добавление табличного представления
+
+### Добавьте роут
+`app/Http/routes.php:`
+```php
+...
+
+Route::get('/', ['uses' => 'UsersController@index']);
+
+...
+```
+
+### Создайте провайдер данных
+Провайдер данных должен реализовывать интерфейс `GridDataProvider`. Критически важно, чтобы метод query() возвращал всегда один и тот же объект типа Builder (**НЕ новый**). Например, `app/GridDataProviders/UsersDataProvider.php`
 ```php
 
 namespace App\GridDataProviders;
@@ -250,6 +273,7 @@ class UsersDataProvider implements GridDataProvider
 }
 ```
 
+### Создайте метод контроллера
 `app/Http/Controllers/UsersController.php:`
 ```php
 
@@ -273,6 +297,8 @@ class UsersController extends Controller
     }
 }
 ```
+
+### Создайте шаблон
 
 `resources/views/users/index.blade.php`
 ```php
@@ -327,16 +353,4 @@ class UsersController extends Controller
 </html>
 ```
 
-`app/Http/routes.php:`
-```php
-...
-
-Route::get('/', ['uses' => 'UsersController@index']);
-
-...
-```
-
-
-
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/xxxcoltxxx/grid-laravel/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
