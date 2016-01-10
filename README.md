@@ -1,4 +1,8 @@
 # grid-laravel
+
+* [Демо](http://grid-laravel.colt-web.ru/)
+* [Исходный код демо](https://github.com/xxxcoltxxx/grid-laravel-example)
+
 ## Зависимости
 
 * jquery (для библиотеки с выбором дат в фильтрации daterangepicker и bootstrap-select, которая используется для стилизации select. Нативных аналогов не нашёл)
