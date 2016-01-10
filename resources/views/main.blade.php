@@ -1,4 +1,4 @@
-<div class="table-grid" ng-controller="GridCtrl">
+<div class="table-grid" ng-grid>
     <input type="hidden" value="{{ Route::current()->getUri() }}" ng-model="dataUrl" />
     <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'" />
     <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'" />
