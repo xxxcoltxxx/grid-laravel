@@ -1,1 +1,1 @@
-var app = angular.module('app', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngGrid']);
+angular.module('app', ['ngGrid']);

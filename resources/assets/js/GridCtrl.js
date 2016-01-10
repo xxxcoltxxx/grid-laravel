@@ -1,4 +1,4 @@
-angular.module('ngGrid', [])
+angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies'])
     .directive('ngGrid', function() {
         return {
             restrict: 'A',
