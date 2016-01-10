@@ -3,6 +3,8 @@
 * [Демо](http://grid-laravel.colt-web.ru/)
 * [Исходный код демо](https://github.com/xxxcoltxxx/grid-laravel-example)
 
+[![Gitter](https://badges.gitter.im/xxxcoltxxx/grid-laravel.svg)](https://gitter.im/xxxcoltxxx/grid-laravel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ## Зависимости
 
 * jquery (для библиотеки с выбором дат в фильтрации daterangepicker и bootstrap-select, которая используется для стилизации select. Нативных аналогов не нашёл)
