@@ -352,5 +352,3 @@ class UsersController extends Controller
 </body>
 </html>
 ```
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/xxxcoltxxx/grid-laravel/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
