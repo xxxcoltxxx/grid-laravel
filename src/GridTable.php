@@ -75,9 +75,6 @@ class GridTable
 
         // TODO: Избавиться от проверки на таблицу
         if ($sorting) {
-            if (!strpos($sorting['field'], '.')) {
-                $sorting['field'] = $main_table . '.' . $sorting['field'];
-            }
             $this->data_provider->query()->orderBy($sorting['field'], $sorting['dir']);
         }
 
