@@ -6,26 +6,44 @@ namespace Paramonov\Grid;
 use Illuminate\Database\Eloquent\Builder;
 
 
-interface GridDataProvider
+abstract class GridDataProvider
 {
+    private $config;
+
+    public function getConfig($alias)
+    {
+        return array_get($this->config, $alias);
+    }
+
+    public function setConfig($alias, $value)
+    {
+        array_set($this->config, $alias, $value);
+    }
+
     /**
      * @return Builder
      */
-    public function query();
+    abstract public function query();
 
     /**
      * @return GridPagination
      */
-    public function pagination();
+    abstract public function pagination();
 
     /**
      * @return \Closure[]
      */
-    public function filters();
+    abstract public function filters();
 
     /**
      * @return array
      */
-    public function getDefaultSorting();
+    public function getDefaultSorting()
+    {
+        return [
+            'field' => 'id',
+            'dir' => 'asc'
+        ];
+    }
 
 }
