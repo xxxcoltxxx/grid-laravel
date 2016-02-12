@@ -4,6 +4,8 @@
 namespace Paramonov\Grid;
 
 
+use Carbon\Carbon;
+
 class GridTable
 {
     private $data_provider;
@@ -75,14 +77,20 @@ class GridTable
 
         // TODO: Избавиться от проверки на таблицу
         if ($sorting) {
+
             $this->data_provider->query()->orderBy($sorting['field'], $sorting['dir']);
         }
 
         // TODO: Избавиться от костыля с копированием массива
         $data = $this->data_provider->query()->take($limit)->skip(($page - 1) * $limit)->get()->toArray();
+
         $grid['data'] = [];
         foreach ($data as $i => $item) {
             foreach ($item as $key => $value) {
+                if ($this->data_provider->getConfig('dates') && $this->data_provider->getConfig('date-format') && in_array($key, $this->data_provider->getConfig('dates'))) {
+
+                    $value = $value ? Carbon::parse($value)->format($this->data_provider->getConfig('date-format')) : null;
+                }
                 $pairs = explode(':', $key);
                 if (count($pairs) > 1) {
                     $grid['data'] [$i] [$pairs[0]] [$pairs[1]] = $value;
