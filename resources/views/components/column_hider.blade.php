@@ -3,7 +3,7 @@
         multiple
         ng-model="columns_hider"
         data-selected-text-format="static"
-        ng-init="loadHider(['{!! implode("','", array_keys($columns)) !!}'])"
+        ng-init="loadHider({{ json_encode(array_keys(collect($columns)->where('default_column', true)->toArray() ?: $columns)) }})"
         title="<i class='fa fa-cog'></i>"
         data-width="50px">
     @foreach($columns as $field => $column)
