@@ -1,12 +1,15 @@
 .table-grid .text-bolder {
     font-weight: 700;
 }
+
 .table-grid th {
     text-align: center;
 }
+
 .table-grid {
     position: relative;
 }
+
 .table-grid .grid-loader {
     position: absolute;
     width: 100%;
@@ -14,4 +17,13 @@
     z-index: 999;
     background-color: #FFFFFF;
     opacity: 0.5;
+}
+
+.grid-top .right-column > * {
+    margin-left: 10px !important;
+
+}
+
+.grid-table-container {
+    overflow-x: scroll;
 }
