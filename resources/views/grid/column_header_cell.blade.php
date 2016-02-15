@@ -1,4 +1,4 @@
-<th ng-show="showColumn('{{ $field }}')" @if(isset($column['class'])) class="{{ $column['class'] }}" @endif>
+<th nowrap ng-show="showColumn('{{ $field }}')" @if(isset($column['class'])) class="{{ $column['class'] }}" @endif>
     <a href="#"
        @if(!isset($column['sortable']) || $column['sortable'] === true)
        ng-click="sort($event, '{{ $field }}')"
