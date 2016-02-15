@@ -31,6 +31,16 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies'])
                     ajaxDelay = $timeout(loadGrid, ajaxDelayTimeout);
                 };
 
+
+
+                $scope.showHideFilters = function() {
+
+                    $scope.show_filters = !$scope.show_filters;
+                    saveParamsToCookies();
+
+                }
+
+
                 $scope.sort = function ($event, field) {
                     $event.preventDefault();
                     if (field == $scope.data_provider.sorting.field) {
@@ -92,6 +102,8 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies'])
                     };
                     $cookies.put('data_provider', angular.toJson($scope.data_provider), params);
                     $cookies.put('columnsHider', angular.toJson($scope.columns_hider), params);
+                    $cookies.put('showFilters', angular.toJson($scope.show_filters), params);
+
                 }
 
                 function loadParamsFromCookies() {
@@ -100,6 +112,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies'])
                         if (data_provider) {
                             $scope.data_provider = angular.merge($scope.data_provider, data_provider);
                         }
+                        $scope.show_filters = typeof $cookies.get('showFilters') == 'undefined' ? false : $cookies.get('showFilters') === 'true';
                     } catch (e) {
                     }
                 }
