@@ -6,6 +6,7 @@
     <div class="grid-loader" ng-show="loading"></div>
 
     {{-- Grid --}}
+
     <div class="grid-top">
         <div class="form-group row">
             {{-- Компоненты --}}
@@ -15,20 +16,31 @@
                 @if (in_array('search_all', $components))
                     @include('grid::components.search_all')
                 @endif
+
+
             </div>
 
-            <div class="col-lg-6 text-right right-column">
+            <div class="col-lg-6 right-column text-right">
+                {{-- Скачать в CSV --}}
+                @if (in_array('download_csv',$components))
+                    @include('grid::components.download_csv')
+                @endif
+
 
                 {{-- Настройка отображаемых колонок --}}
                 @if (in_array('column_hider', $components))
                     @include('grid::components.column_hider')
                 @endif
+
+
             </div>
         </div>
     </div>
-    <div class="grid-table-container">
+
+    <div ng-init="headers = {{ json_encode($headers) }}" class="grid-table-container">
         <table class="table table-bordered table-condensed table-hover">
             <thead>
+
             {{-- Заголовки колонок --}}
             <tr>
                 @foreach($columns as $field => $column)
@@ -39,9 +51,11 @@
             {{-- Фильтры колонок --}}
             <tr>
                 @foreach($columns as $field => $column)
-                    <th ng-show="showColumn('{{ $field }}')"
+                    <th ng-show="showColumn('{{ $field }}') && show_filters"
                         @if(isset($column['filter-class'])) class="{{ $column['filter-class'] }}" @endif>
-                        @include('grid::filters.' . $column['type'])
+                        @if(isset($column['type']))
+                            @include('grid::filters.' . $column['type'])
+                        @endif
                     </th>
                 @endforeach
             </tr>
@@ -83,4 +97,3 @@
 
     <div class="clearfix"></div>
 
-</div>
