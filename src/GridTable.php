@@ -154,6 +154,7 @@ class GridTable
             'sorting' => $this->getSorting(),
             'components' => $components,
             'headers' => $this->getHeaders($columns ?: array_keys($this->data_provider->filters())),
+            'system_fields' => $this->system_fields,
         ]);
     }
 
