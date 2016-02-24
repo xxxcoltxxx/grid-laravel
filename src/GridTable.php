@@ -66,7 +66,9 @@ class GridTable
     {
         if ($sorting) {
 
-            $this->data_provider->query()->orderBy($sorting['field'], $sorting['dir']);
+            $sort_field = isset($this->data_provider->sorting_resolve[$sorting['field']]) ? $this->data_provider->sorting_resolve[$sorting['field']] : $sorting['field'];
+
+            $this->data_provider->query()->orderBy($sort_field, $sorting['dir']);
 
         }
         $query = $this->data_provider->query();
