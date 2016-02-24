@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 abstract class GridDataProvider
 {
     private $config;
+    public $sorting_resolve;
 
     public function getConfig($alias)
     {
