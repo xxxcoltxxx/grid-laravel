@@ -78,6 +78,22 @@ class GridTable
         return $query->get();
     }
 
+    private function mapDataWithTemplates($data, $templates)
+    {
+        $result = [];
+        $data->map(function ($item) use ($templates, &$result) {
+
+            $item_ = !is_array($item) ? $item->toArray() : $item;
+            foreach ($templates as $cell_name => $viewFunc) {
+                $item_[$cell_name] = $viewFunc($item);;
+            }
+            $result[] = $item_;
+
+        });
+
+        return $result;
+    }
+
     public function getData($columns = [])
     {
 
@@ -92,7 +108,24 @@ class GridTable
         $this->buildQuery($searches);
         $total = $this->data_provider->query()->count();
 
-        $data = $this->makeQuery($sorting, $limit, $page)->toArray();
+        $data = $this->makeQuery($sorting, $limit, $page);
+
+        if ($cell_templates = $this->data_provider->getConfig('cells-template')) {
+
+            /**
+             * @TODO Избавиться от foreach
+             */
+            foreach ($cell_templates as $cell_name => $view) {
+
+                $templates[$cell_name] = function ($item) use ($view) {
+                    return view($view, compact('item'))->render();
+                };
+
+            }
+            $data = $this->mapDataWithTemplates($data, $templates);
+
+        }
+
 
         return [
             'data' => $this->formatData($data),
@@ -100,6 +133,20 @@ class GridTable
             'sorting' => $sorting,
             'total' => $total,
         ];
+    }
+
+    private function makeCsvOutput($data)
+    {
+        $output = [];
+        foreach ($data as $cells) {
+            $output[] = '"' . implode('";"', $cells) . '"';
+        }
+        return implode("\n", $output);
+    }
+
+    private function encodeForCsv($string)
+    {
+        return iconv('UTF8', 'CP1251', $string);
     }
 
     public function getCSV($file_name, $template)
@@ -110,40 +157,41 @@ class GridTable
         $headers = $this->getRequestData('headers');
         $sorting = $this->getRequestData('sorting', $this->getSorting());
         $this->buildQuery($searches);
-        $output = [];
-        $cells = [];
 
+        $csv_data = [];
 
-
-        foreach ($columns as $field_name){
-
-            if (in_array($field_name, $this->system_fields)){
-                continue;
-            }
-
-            $cells[] = iconv('UTF8', 'CP1251', $headers[$field_name]);
+        foreach (array_diff($columns, $this->system_fields) as $field_name) {
+            $csv_data[0][] = $this->encodeForCsv($headers[$field_name]);
         }
 
-        $output[] = implode(';', $cells);
 
-        foreach ($this->makeQuery($sorting) as $item) {
+        $data = $this->makeQuery($sorting);
+        $templates = [];
+
+        /**
+         * @TODO Избавиться от foreach
+         */
+
+        foreach (array_diff($columns, $this->system_fields) as $field_name) {
+                $templates[$field_name] = function ($item) use ($template, $field_name) {
+                    return str_replace(["\n", '\n', '  '], ['', "\r\n", ''], $this->encodeForCsv(view('grid::cell', compact('field_name', 'item', 'template'))->render()));
+                };
+        }
+
+        $data = $this->mapDataWithTemplates($data, $templates);
+
+
+        foreach ($data as $row) {
             $cells = [];
-
-
-            foreach ($columns as $field_name) {
-
-                if (in_array($field_name, $this->system_fields)){
-                    continue;
-                }
-
-                $cell =  "\"" . str_replace(["\n", '\n', '  '], ['', "\r\n", ''], view('grid::cell', compact('field_name', 'item', 'template'))) . "\"";
-                $cells[] = iconv('UTF8', 'CP1251', $cell);
+            foreach (array_diff($columns, $this->system_fields) as $field_name) {
+                $cells[] = $row[$field_name];
             }
-            $output[] = implode(';', $cells);
+            $csv_data[] = $cells;
         }
+
 
         \Debugbar::disable();
-        return response(implode("\n", $output))->header('Content-Disposition', 'attachment; filename="'.$file_name.'.csv"');
+        return response($this->makeCsvOutput($csv_data))->header('Content-Disposition', 'attachment; filename="' . $file_name . '.csv"');
 
 
     }
@@ -163,7 +211,7 @@ class GridTable
     private function getHeaders($columns)
     {
         $headers = [];
-        foreach ($columns as $column_name => $column){
+        foreach ($columns as $column_name => $column) {
             $headers[$column_name] = $column['title'];
         }
         return $headers;
