@@ -71,7 +71,7 @@
                         @if (isset($column['cell']))
                             {!! $column['cell'] !!}
                         @else
-                            @{{ item.{!! $field !!} }}
+                            <span ng-bind-html="item.{!! $field !!}"></span>
                         @endif
                     </td>
                 @endforeach
