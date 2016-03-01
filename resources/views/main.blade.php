@@ -1,12 +1,12 @@
-<div class="table-grid" ng-grid>
-    <input type="hidden" value="{{ Route::current()->getUri() }}" ng-model="dataUrl"/>
+<div class="table-grid" ng-grid ng-cloak>
+    <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : '/' . Route::current()->getUri() }}'" />
     <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'"/>
     <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'"/>
 
-    <div class="grid-loader" ng-show="loading"></div>
+    <div class="grid-loader" ng-style="{opacity: loading_opacity, visibility: loading ? 'visible' : 'hidden'}">
+    </div>
 
     {{-- Grid --}}
-
     <div class="grid-top">
         <div class="form-group row">
             {{-- Компоненты --}}

@@ -46,8 +46,8 @@ class GridPagination
     {
         if (isset($_COOKIE['data_provider'])) {
             $data_provider = json_decode($_COOKIE['data_provider'], true);
-            if (!empty($data_provider['pagination']['items_per_page'])) {
-                return $data_provider['pagination']['items_per_page'];
+            if ($limit = (int) array_get($data_provider, 'pagination.items_per_page')) {
+                return $limit;
             }
         }
         return $this->getDefault();

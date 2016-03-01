@@ -16,12 +16,12 @@
     height: 100%;
     z-index: 999;
     background-color: #FFFFFF;
-    opacity: 0.5;
+    transition: opacity 1s ease 0.3s;
+    opacity: 0;
 }
 
 .grid-top .right-column > * {
     margin-left: 10px !important;
-
 }
 
 .grid-table-container {
