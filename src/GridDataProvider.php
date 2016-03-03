@@ -18,6 +18,8 @@ abstract class GridDataProvider
     private $default_sorting;
     private $data_url;
     private $templates;
+    private $date_format;
+    private $dates = [];
 
 
     /**
@@ -188,5 +190,55 @@ abstract class GridDataProvider
             $this->data_url = $this->dataUrl();
         }
         return $this->data_url;
+    }
+
+
+    /**
+     * Формат вывода дат
+     *
+     * @return string
+     */
+    protected function dateFormat()
+    {
+        return 'Y-m-d';
+    }
+
+
+    /**
+     * Получение формата вывода дат
+     *
+     * @return string
+     */
+    public function getDateFormat()
+    {
+        if (is_null($this->date_format)) {
+            $this->date_format = $this->dateFormat();
+        }
+        return $this->date_format;
+    }
+
+
+    /**
+     * Поля типа "Дата"
+     *
+     * @return array
+     */
+    protected function dates()
+    {
+        return [];
+    }
+
+
+    /**
+     * Получение полей типа "Дата"
+     *
+     * @return array
+     */
+    public function getDates()
+    {
+        if (is_null($this->dates)) {
+            $this->dates = $this->dates();
+        }
+        return $this->dates;
     }
 }
