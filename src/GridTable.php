@@ -17,6 +17,11 @@ class GridTable
         'tools'
     ];
 
+    const TYPE_STRING = 'string';
+    const TYPE_DATE_RANGE = 'daterange';
+    const TYPE_SELECT = 'select';
+    const TYPE_MULTI_SELECT = 'multiselect';
+
     public function __construct(GridDataProvider $data_provider)
     {
         $this->data_provider = $data_provider;
@@ -160,7 +165,6 @@ class GridTable
             $csv_data[0][] = $this->encodeForCsv($headers[$field_name]);
         }
 
-
         $data = $this->makeQuery($sorting);
         $templates = [];
 
@@ -169,9 +173,10 @@ class GridTable
          */
 
         foreach (array_diff($columns, $this->system_fields) as $field_name) {
-                $templates[$field_name] = function ($item) use ($template, $field_name) {
-                    return str_replace(["\n", '\n', '  '], ['', "\r\n", ''], $this->encodeForCsv(view('grid::cell', compact('field_name', 'item', 'template'))->render()));
-                };
+            $templates[$field_name] = function ($item) use ($template, $field_name) {
+                $field_name = $this->encodeField($field_name);
+                return str_replace(["\n", '\n', '  '], ['', "\r\n", ''], $this->encodeForCsv(view('grid::cell', compact('field_name', 'item', 'template'))->render()));
+            };
         }
 
         $data = $this->mapDataWithTemplates($data, $templates);
@@ -192,9 +197,9 @@ class GridTable
 
     }
 
-    public function render($columns, array $components = ['search_all', 'active', 'column_hider'])
+    public function render($columns, array $components = ['search_all', 'active', 'column_hider'], $view = 'grid::main')
     {
-        return view('grid::main', [
+        return view($view, [
             'data_provider' => $this->data_provider,
             'columns' => $columns,
             'sorting' => $this->getSorting(),
@@ -242,11 +247,11 @@ class GridTable
                 $item = $item->toArray();
             }
             foreach ($item as $key => $value) {
-                if ($this->data_provider->getConfig('dates') && $this->data_provider->getConfig('date-format') && in_array($key, $this->data_provider->getConfig('dates'))) {
-
-                    $value = $value ? Carbon::parse($value)->format($this->data_provider->getConfig('date-format')) : null;
+                $key = $this->decodeField($key);
+                if ($this->data_provider->getDates() && $this->data_provider->getDateFormat() && in_array($key, $this->data_provider->getDates())) {
+                    $value = $value ? Carbon::parse($value)->format($this->data_provider->getDateFormat()) : null;
                 }
-                $pairs = explode(':', $key);
+                $pairs = explode('.', $key);
                 if (count($pairs) > 1) {
                     $grid_data [$i] [$pairs[0]] [$pairs[1]] = $value;
                 } else {
@@ -255,5 +260,15 @@ class GridTable
             }
         }
         return $grid_data;
+    }
+
+    private function encodeField($field)
+    {
+        return str_replace('.', ':', $field);
+    }
+
+    private function decodeField($field)
+    {
+        return str_replace(':', '.', $field);
     }
 }
