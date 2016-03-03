@@ -5,6 +5,9 @@ namespace Paramonov\Grid;
 
 
 use Carbon\Carbon;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class GridTable
 {
@@ -25,7 +28,7 @@ class GridTable
             return;
         }
 
-        $filters = $this->data_provider->filters();
+        $filters = $this->data_provider->getFilters();
         foreach ($searches as $alias => $search) {
             $alias = $prefix . $alias;
             if (!$search) {
@@ -33,7 +36,7 @@ class GridTable
             }
 
             if (isset($filters[$alias])) {
-                $filters[$alias] ($this->data_provider->query(), $search);
+                $filters[$alias] ($this->data_provider->getQuery(), $search);
             } else {
                 $this->buildQuery($search, $alias . '.');
             }
@@ -42,12 +45,13 @@ class GridTable
 
     private function addSelectsToDataProvider($columns)
     {
-        $main_table = $this->data_provider->query()->getModel()->getTable();
+        $main_table = $this->data_provider->getQuery()->getModel()->getTable();
         // Добавляем селекты для уникальности полей в выборке
-        $this->data_provider->query()->addSelect($main_table . '.*');
+        /** @var Builder */
+        $this->data_provider->getQuery()->addSelect($main_table . '.*');
         foreach ($columns as $field) {
             if (strpos($field, '.')) {
-                $this->data_provider->query()->addSelect($field . ' as ' . str_replace('.', ':', $field));
+                $this->data_provider->getQuery()->addSelect($field . ' as ' . str_replace('.', ':', $field));
             }
         }
     }
@@ -55,9 +59,7 @@ class GridTable
     private function getRequestData($key, $default = null, $access_string = null)
     {
         $this->request = $this->request ?: \Request::capture();
-
         $data = json_decode($this->request->input($key), true);
-
         return $access_string ? array_get($data, $access_string, $default) : ($data ?: $default);
 
     }
@@ -65,13 +67,11 @@ class GridTable
     private function makeQuery($sorting = null, $limit = null, $page = null)
     {
         if ($sorting) {
-
             $sort_field = isset($this->data_provider->sorting_resolve[$sorting['field']]) ? $this->data_provider->sorting_resolve[$sorting['field']] : $sorting['field'];
-
-            $this->data_provider->query()->orderBy($sort_field, $sorting['dir']);
-
+            $this->data_provider->getQuery()->orderBy($sort_field, $sorting['dir']);
         }
-        $query = $this->data_provider->query();
+
+        $query = $this->data_provider->getQuery();
         if ($limit) {
             $query->take($limit)->skip(($page - 1) * $limit);
         }
@@ -85,7 +85,7 @@ class GridTable
 
             $item_ = !is_array($item) ? $item->toArray() : $item;
             foreach ($templates as $cell_name => $viewFunc) {
-                $item_[$cell_name] = $viewFunc($item);;
+                $item_[$cell_name] = $viewFunc($item);
             }
             $result[] = $item_;
 
@@ -97,35 +97,31 @@ class GridTable
     public function getData($columns = [])
     {
 
-        $this->addSelectsToDataProvider($columns ?: array_keys($this->data_provider->filters()));
+        $this->addSelectsToDataProvider($columns ?: array_keys($this->data_provider->getFilters()));
 
         $searches = $this->getRequestData('search');
         $sorting = $this->getRequestData('sorting', $this->getSorting());
-        $limit = $this->getRequestData('pagination', $this->data_provider->pagination()->getLimit(), 'items_per_page');
+        $limit = $this->getRequestData('pagination', $this->data_provider->getPagination()->getLimit(), 'items_per_page');
+        if (!(int) $limit) {
+            $limit = $this->data_provider->getPagination()->getLimit();
+        }
         $page = $this->getRequestData('pagination', 1, 'current_page');
 
 
         $this->buildQuery($searches);
-        $total = $this->data_provider->query()->count();
 
+        $total = $this->data_provider->getQuery()->count();
         $data = $this->makeQuery($sorting, $limit, $page);
 
-        if ($cell_templates = $this->data_provider->getConfig('cells-template')) {
-
-            /**
-             * @TODO Избавиться от foreach
-             */
+        if ($cell_templates = $this->data_provider->getTemplates()) {
+             // TODO: Избавиться от foreach
             foreach ($cell_templates as $cell_name => $view) {
-
                 $templates[$cell_name] = function ($item) use ($view) {
                     return view($view, compact('item'))->render();
                 };
-
             }
             $data = $this->mapDataWithTemplates($data, $templates);
-
         }
-
 
         return [
             'data' => $this->formatData($data),
@@ -151,7 +147,7 @@ class GridTable
 
     public function getCSV($file_name, $template)
     {
-        $columns = $this->getRequestData('column_names', array_keys($this->data_provider->filters()));
+        $columns = $this->getRequestData('column_names', array_keys($this->data_provider->getFilters()));
         $this->addSelectsToDataProvider($columns);
         $searches = $this->getRequestData('search');
         $headers = $this->getRequestData('headers');
@@ -202,8 +198,9 @@ class GridTable
             'data_provider' => $this->data_provider,
             'columns' => $columns,
             'sorting' => $this->getSorting(),
+            'data_url' => $this->data_provider->getDataUrl(),
             'components' => $components,
-            'headers' => $this->getHeaders($columns ?: array_keys($this->data_provider->filters())),
+            'headers' => $this->getHeaders($columns ?: array_keys($this->data_provider->getFilters())),
             'system_fields' => $this->system_fields,
         ]);
     }
@@ -234,7 +231,6 @@ class GridTable
     }
 
     /**
-     * @param $grid
      * @param $data
      * @return mixed
      */
@@ -242,6 +238,9 @@ class GridTable
     {
         $grid_data = [];
         foreach ($data as $i => $item) {
+            if ($item instanceof Model) {
+                $item = $item->toArray();
+            }
             foreach ($item as $key => $value) {
                 if ($this->data_provider->getConfig('dates') && $this->data_provider->getConfig('date-format') && in_array($key, $this->data_provider->getConfig('dates'))) {
 
