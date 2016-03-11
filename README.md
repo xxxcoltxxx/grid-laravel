@@ -83,7 +83,7 @@ angular.module('app', ['ngGrid'])
 ...
 ```
 ### Если у вас не angular-приложение
-Просто добавьте в конфигурацию `gulp` файл `angular.init.js`, как в примере ниже.
+Просто добавьте в конфигурацию `gulp` файл `angular.init.example.js`, как в примере ниже.
 
 ### Сконфигурируйте gulp
 Это нужно для того, чтобы все js и css объединились в два файла:
@@ -103,8 +103,8 @@ elixir(function(mix) {
         'bower_components/bootstrap-daterangepicker/daterangepicker.js',
         'bower_components/angular-daterangepicker/js/angular-daterangepicker.js',
         'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
-        'resources/assets/vendor/grid/js/angular.init.js', // Этот файл нужно подключить, если у вас не angular-приложение
-        'resources/assets/vendor/grid/js/GridCtrl.js'
+        'resources/assets/vendor/grid/js/angular.init.example.js', // Этот файл нужно подключить, если у вас не angular-приложение
+        'resources/assets/vendor/grid/js/ngGrid.js'
     ], 'public/js/scripts.js', '.');
 
     mix.styles([

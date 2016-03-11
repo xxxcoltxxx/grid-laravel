@@ -1,7 +1,7 @@
 <div class="table-grid" ng-grid ng-cloak>
     <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : '/' . Route::current()->getUri() }}'" />
-    <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'"/>
-    <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'"/>
+    <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'" />
+    <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'" />
 
     <div class="grid-loader" ng-style="{opacity: loading_opacity, visibility: loading ? 'visible' : 'hidden'}">
     </div>
@@ -16,8 +16,6 @@
                 @if (in_array('search_all', $components))
                     @include('grid::components.search_all')
                 @endif
-
-
             </div>
 
             <div class="col-lg-6 right-column text-right">
@@ -31,8 +29,6 @@
                 @if (in_array('column_hider', $components))
                     @include('grid::components.column_hider')
                 @endif
-
-
             </div>
         </div>
     </div>
@@ -64,7 +60,7 @@
             @include('grid::grid.fallbacks')
 
             {{-- Данные --}}
-            <tr ng-show="data != undefined" ng-repeat="item in data">
+            <tr ng-show="data != undefined" ng-repeat="item in data" {!! array_get($components, 'row-attrs') !!}>
                 @foreach($columns as $field => $column)
                     <td ng-show="showColumn('{{ $field }}')"
                         @if(isset($column['data-class'])) class="{{ $column['data-class'] }}" @endif>
@@ -96,4 +92,4 @@
     </div>
 
     <div class="clearfix"></div>
-
+</div>
