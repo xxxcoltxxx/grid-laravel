@@ -9,41 +9,19 @@ use Illuminate\Database\Eloquent\Builder;
 
 abstract class GridDataProvider
 {
+    /**
+     * @var array Соответствие алиаса столбца в grid столбцу в БД для сортировки
+     */
     public $sorting_resolve;
 
-    private $config;
-    public $query;
+    private $query;
     private $pagination;
     private $filters;
     private $default_sorting;
     private $data_url;
     private $templates;
     private $date_format;
-    private $dates = [];
-
-
-    /**
-     * Получение значения конфигурации
-     *
-     * @param $alias
-     * @return mixed
-     */
-    public function getConfig($alias)
-    {
-        return array_get($this->config, $alias);
-    }
-
-
-    /**
-     * Установка значения конфигурации
-     *
-     * @param $alias
-     * @param $value
-     */
-    public function setConfig($alias, $value)
-    {
-        array_set($this->config, $alias, $value);
-    }
+    private $dates;
 
 
     /**
@@ -59,7 +37,7 @@ abstract class GridDataProvider
      *
      * @return Builder
      */
-    public function getQuery()
+    final public function getQuery()
     {
         if (is_null($this->query)) {
             $this->query = $this->query();
@@ -84,7 +62,7 @@ abstract class GridDataProvider
      *
      * @return GridPagination
      */
-    public function getPagination()
+    final public function getPagination()
     {
         if (is_null($this->pagination)) {
             $this->pagination = $this->pagination();
@@ -107,7 +85,7 @@ abstract class GridDataProvider
      *
      * @return \Closure[]
      */
-    public function getFilters()
+    final public function getFilters()
     {
         if (is_null($this->filters)) {
             $this->filters = $this->filters();
@@ -132,7 +110,7 @@ abstract class GridDataProvider
      *
      * @return array
      */
-    public function getTemplates()
+    final public function getTemplates()
     {
         if (is_null($this->templates)) {
             $this->templates = $this->templates();
@@ -159,7 +137,7 @@ abstract class GridDataProvider
      *
      * @return array
      */
-    public function getDefaultSorting()
+    final public function getDefaultSorting()
     {
         if (is_null($this->default_sorting)) {
             $this->default_sorting = $this->defaultSorting();
@@ -184,7 +162,7 @@ abstract class GridDataProvider
      *
      * @return string
      */
-    public function getDataUrl()
+    final public function getDataUrl()
     {
         if (is_null($this->data_url)) {
             $this->data_url = $this->dataUrl();
@@ -209,7 +187,7 @@ abstract class GridDataProvider
      *
      * @return string
      */
-    public function getDateFormat()
+    final public function getDateFormat()
     {
         if (is_null($this->date_format)) {
             $this->date_format = $this->dateFormat();
@@ -234,7 +212,7 @@ abstract class GridDataProvider
      *
      * @return array
      */
-    public function getDates()
+    final public function getDates()
     {
         if (is_null($this->dates)) {
             $this->dates = $this->dates();
