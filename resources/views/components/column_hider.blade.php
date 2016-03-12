@@ -7,7 +7,6 @@
         data-dropdown-align-right="true"
         selectpicker
         ng-model="columns_hider"
-        ng-init="loadHider({{ json_encode(array_keys(collect($columns)->where('default_column', true)->toArray() ?: $columns)) }})"
 >
 
     @foreach($columns as $field => $column)

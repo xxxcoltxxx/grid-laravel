@@ -3,14 +3,17 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
         return {
             restrict: 'A',
             controller: ['$scope', '$http', '$cookies', '$timeout', '$q', function ($scope, $http, $cookies, $timeout, $q) {
-                $scope.data_provider = {
-                    search: {},
-                    sorting: {},
-                    pagination: {
-                        current_page: 1,
-                        items_per_page: '10'
-                    }
-                };
+                $timeout(function() {
+                    $scope.data_provider = {
+                        search: $scope.default_filters,
+                        sorting: {},
+                        pagination: {
+                            current_page: 1,
+                            items_per_page: '10'
+                        }
+                    };
+                });
+
                 $scope.columns_hider = [];
                 $scope.data_url = "";
 

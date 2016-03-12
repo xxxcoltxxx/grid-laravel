@@ -2,7 +2,7 @@
     <input class="form-control" type="text" ng-model="data_provider.search.all"
            placeholder="@lang('grid::main.search-all')"/>
     <span class="input-group-btn">
-        <button class="btn btn-default" type="button" ng-click="data_provider.search = {}">
+        <button class="btn btn-default" type="button" ng-click="data_provider.search = default_filters">
             <i class="fa fa-remove"></i>
         </button>
          <button type="button" ng-click="showHideFilters()" class="btn btn-default">
