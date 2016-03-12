@@ -73,7 +73,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     $scope.loading = true;
                     $scope.loading_opacity = max_opacity;
 
-                    var params = angular.merge({}, angular.fromJson(angular.toJson($scope.data_provider)), {getData: true});
+                    var params = angular.merge({}, angular.fromJson(angular.toJson($scope.data_provider)), {getData: true, column_names: $scope.headers});
                     $http.get(
                         $scope.data_url,
                         {

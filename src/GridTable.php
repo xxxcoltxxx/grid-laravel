@@ -99,9 +99,9 @@ class GridTable
         return $result;
     }
 
-    public function getData($columns = [])
+    public function getData($template = null)
     {
-
+        $columns = array_keys($this->getRequestData('column_names', $this->data_provider->getFilters()));
         $this->addSelectsToDataProvider($columns ?: array_keys($this->data_provider->getFilters()));
 
         $searches = $this->getRequestData('search');
@@ -118,11 +118,13 @@ class GridTable
         $total = $this->data_provider->getQuery()->count();
         $data = $this->makeQuery($sorting, $limit, $page);
 
-        if ($cell_templates = $this->data_provider->getTemplates()) {
+        if ($template) {
+            $templates = [];
              // TODO: Избавиться от foreach
-            foreach ($cell_templates as $cell_name => $view) {
-                $templates[$cell_name] = function ($item) use ($view) {
-                    return view($view, compact('item'))->render();
+            foreach ($columns as $field_name) {
+                $templates[$field_name] = function($item) use ($template, $field_name) {
+                    $field_name = $this->encodeField($field_name);
+                    return view('grid::cell', compact('template', 'field_name', 'item'))->render();
                 };
             }
             $data = $this->mapDataWithTemplates($data, $templates);
@@ -150,7 +152,7 @@ class GridTable
         return iconv('UTF8', 'CP1251', $string);
     }
 
-    public function getCSV($file_name, $template)
+    public function getCSV($file_name, $template = null)
     {
         $columns = $this->getRequestData('column_names', array_keys($this->data_provider->getFilters()));
         $this->addSelectsToDataProvider($columns);
@@ -189,24 +191,23 @@ class GridTable
             }
             $csv_data[] = $cells;
         }
-
-
-        \Debugbar::disable();
         return response($this->makeCsvOutput($csv_data))->header('Content-Disposition', 'attachment; filename="' . $file_name . '.csv"');
 
 
     }
 
-    public function render($columns, array $components = ['search_all', 'active', 'column_hider'], $view = 'grid::main')
+    public function render($columns, array $components = ['search_all', 'column_hider'], $view = 'grid::main')
     {
         return view($view, [
             'data_provider' => $this->data_provider,
             'columns' => $columns,
             'sorting' => $this->getSorting(),
             'data_url' => $this->data_provider->getDataUrl(),
+            'csv_url' => $this->data_provider->getCsvUrl(),
             'components' => $components,
             'headers' => $this->getHeaders($columns ?: array_keys($this->data_provider->getFilters())),
             'system_fields' => $this->system_fields,
+            'default_filters' => $this->data_provider->getDefaultFilters(),
         ]);
     }
 

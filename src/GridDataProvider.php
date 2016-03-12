@@ -18,7 +18,9 @@ abstract class GridDataProvider
     private $pagination;
     private $filters;
     private $default_sorting;
+    private $default_filters;
     private $data_url;
+    private $csv_url;
     private $templates;
     private $date_format;
     private $dates;
@@ -95,30 +97,6 @@ abstract class GridDataProvider
 
 
     /**
-     * Вьюшки для рендеринга отдельных ячеек
-     *
-     * @return array
-     */
-    protected function templates()
-    {
-        return [];
-    }
-
-
-    /**
-     * Получение шаблонов для отдельных ячеек
-     *
-     * @return array
-     */
-    final public function getTemplates()
-    {
-        if (is_null($this->templates)) {
-            $this->templates = $this->templates();
-        }
-        return $this->templates;
-    }
-
-    /**
      * Сортировка по умолчанию
      *
      * @return array
@@ -172,6 +150,31 @@ abstract class GridDataProvider
 
 
     /**
+     * url для загрузки CSV-файла
+     *
+     * @return string
+     */
+    protected function csvUrl()
+    {
+        return '';
+    }
+
+
+    /**
+     * Получение url для загрузки CSV-файла
+     *
+     * @return string
+     */
+    final public function getCsvUrl()
+    {
+        if (is_null($this->csv_url)) {
+            $this->csv_url = $this->csvUrl();
+        }
+        return $this->csv_url;
+    }
+
+
+    /**
      * Формат вывода дат
      *
      * @return string
@@ -218,5 +221,47 @@ abstract class GridDataProvider
             $this->dates = $this->dates();
         }
         return $this->dates;
+    }
+
+
+    /**
+     * Фильтры по-умолчанию
+     * Они применяются, если фильтры отсутствуют или пользователь сбросил все фильтры
+     *
+     * @return array
+     */
+    protected function defaultFilters()
+    {
+        return [];
+    }
+
+
+    /**
+     * Получение фильтров по-умолчанию
+     *
+     * @return mixed
+     */
+    final public function getDefaultFilters()
+    {
+        if (is_null($this->default_filters)) {
+            $this->default_filters = array_merge($this->getDefaultDates(), $this->defaultFilters());
+        }
+        return $this->default_filters;
+    }
+
+
+    /**
+     * Получение фильтров по-умолчанию для полей типа "дата"
+     * Поля с возможностью выбора периода должны быть с полями startDate, endDate, иначе в консоли сыпятся ошибки
+     *
+     * @return array
+     */
+    private function getDefaultDates()
+    {
+        $filters = [];
+        foreach ($this->getDates() as $field) {
+            $filters[$field] = ['startDate' => null, 'endDate' => null];
+        }
+        return $filters;
     }
 }
