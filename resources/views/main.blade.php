@@ -4,7 +4,7 @@
     <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : Route::current()->getUri() }}'" />
     <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'" />
     <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'" />
-    <input type="hidden" ng-init="default_filters = data_provider.search = {{ json_encode($default_filters) }}" />
+    <input type="hidden" ng-init="default_filters = {{ json_encode($default_filters) }}" />
 
     <div class="grid-loader" ng-style="{opacity: loading_opacity, visibility: loading ? 'visible' : 'hidden'}">
     </div>

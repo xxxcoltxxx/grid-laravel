@@ -3,16 +3,14 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
         return {
             restrict: 'A',
             controller: ['$scope', '$http', '$cookies', '$timeout', '$q', function ($scope, $http, $cookies, $timeout, $q) {
-                $timeout(function() {
-                    $scope.data_provider = {
-                        search: $scope.default_filters,
-                        sorting: {},
-                        pagination: {
-                            current_page: 1,
-                            items_per_page: '10'
-                        }
-                    };
-                });
+                $scope.data_provider = {
+                    search: {},
+                    sorting: {},
+                    pagination: {
+                        current_page: 1,
+                        items_per_page: '10'
+                    }
+                };
 
                 $scope.columns_hider = [];
                 $scope.data_url = "";
@@ -110,6 +108,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
 
                 function loadParamsFromCookies() {
                     try {
+                        $scope.data_provider = {};
                         var data_provider = angular.fromJson($cookies.get('data_provider'));
                         if (data_provider) {
                             $scope.data_provider = angular.merge($scope.data_provider, data_provider);
@@ -118,6 +117,13 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     } catch (e) {
 
                     }
+                    if ($scope.data_provider.pagination == undefined) {
+                        $scope.data_provider.pagination = {
+                            current_page: 1,
+                            items_per_page: '10'
+                        };
+                    }
+                    $scope.data_provider.search = angular.merge($scope.default_filters, $scope.data_provider.search);
                 }
 
                 $scope.loadHider = function (params) {
@@ -133,15 +139,17 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     }
                 };
 
-                loadParamsFromCookies();
+                $timeout(function() {
+                    loadParamsFromCookies();
 
-                $scope.$watch('data_provider', function () {
-                    $scope.loadGrid();
-                }, true);
+                    $scope.$watch('data_provider', function () {
+                        $scope.loadGrid();
+                    }, true);
 
-                $scope.$watch('columns_hider', function () {
-                    saveParamsToCookies();
-                }, true);
+                    $scope.$watch('columns_hider', function () {
+                        saveParamsToCookies();
+                    }, true);
+                });
             }]
         }
     });

@@ -1,6 +1,7 @@
 <div class="input-group input-group-sm" style="width: 210px">
     <input type="text" class="form-control"
            date-range-picker
+           ng-init="data_provider.search.{{ $field }} = {startDate: null, endDate: null}"
            ng-model="data_provider.search.{{ $field }}"
     />
     <span class="input-group-btn">
