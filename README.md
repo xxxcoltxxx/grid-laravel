@@ -1,4 +1,4 @@
-# grid-laravel
+# grid-laravel v2.0
 
 * [Демо](http://grid-laravel.colt-web.ru/)
 * [Исходный код демо](https://github.com/xxxcoltxxx/grid-laravel-example)
@@ -69,6 +69,7 @@ bower install --save angular-daterangepicker
 bower install --save bootstrap-select
 bower install --save angular-bootstrap-select
 bower install --save angular-bootstrap
+bower install --save angular-sanitize
 ```
 
 ### Скопируйте views, lang и assets пакета, которые вы в последствии можете изменять и кастомизировать "под себя":
@@ -95,6 +96,7 @@ elixir(function(mix) {
     mix.scripts([
         'bower_components/jquery/dist/jquery.js',
         'bower_components/angular/angular.js',
+        'bower_components/angular-sanitize/angular-sanitize.js',
         'bower_components/bootstrap/dist/js/bootstrap.js',
         'bower_components/angular-cookies/angular-cookies.js',
         'bower_components/moment/moment.js',
@@ -124,6 +126,7 @@ elixir(function(mix) {
         'public/fonts'
     );
 });
+
 ```
 
 ### Запустите gulp
@@ -140,12 +143,14 @@ gulp
 ...
 
 Route::get('/', ['uses' => 'UsersController@index']);
-
+# Опционально: отдельные роуты для загрузки табличных данных - json и csv
+Route::get('/users.json', ['uses' => 'UsersController@gridData', 'as' => 'users.json']);
+Route::get('/users.csv', ['uses' => 'UsersController@gridCsv', 'as' => 'users.csv']);
 ...
 ```
 
 ### Создайте провайдер данных
-Провайдер данных должен реализовывать интерфейс `GridDataProvider`. Критически важно, чтобы метод query() возвращал всегда один и тот же объект типа Builder (**НЕ новый**). Например, `app/GridDataProviders/UsersDataProvider.php`
+Провайдер данных должен расширять класс `GridDataProvider`. Например, `app/GridDataProviders/UsersDataProvider.php`
 ```php
 
 namespace App\GridDataProviders;
@@ -154,124 +159,175 @@ namespace App\GridDataProviders;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Config;
 use Paramonov\Grid\GridDataProvider;
 use Paramonov\Grid\GridPagination;
 
-class UsersDataProvider implements GridDataProvider
+class UsersDataProvider extends GridDataProvider
 {
-    public $query;
-    public $pagination;
-    public $filters;
-    public $default_sorting;
 
     /**
+     * Запрос для выборки данных для таблицы
+     *
      * @return Builder
      */
     public function query()
     {
-        if (is_null($this->query)) {
-            $this->query = User::leftJoin('user_companies', 'user_companies.id', '=', 'users.company_id');
-        }
-        return $this->query;
+        return User::leftJoin('user_companies', 'user_companies.id', '=', 'users.company_id');
     }
 
+
     /**
+     * Пагинация
+     *
      * @return GridPagination
      */
     public function pagination()
     {
-        if (is_null($this->pagination)) {
-            $this->pagination = new GridPagination([5, 10, 15, 25, 50]);
-        }
-        return $this->pagination;
+        return new GridPagination([5, 10, 15, 25, 50]);
     }
 
     /**
+     * Фильтрация выборки. Аналог scope в модели
+     * Ключи массива должны совпадать с ключами массива из view
+     *
      * @return \Closure[]
      */
     public function filters()
     {
-        if (is_null($this->filters)) {
-            $this->filters = [
-                'id' => function(Builder $query, $search) {
-                    if (is_numeric($search)) {
-                        $query->where('users.id', $search);
-                    }
-                },
-                'name' => function(Builder $query, $search) {
-                    if (is_string($search)) {
-                        $query->where('users.name', 'ilike', '%' . $search . '%');
-                    }
-                },
-                'email' => function(Builder $query, $search) {
-                    if (is_string($search)) {
-                        $query->where('users.email', 'ilike', '%' . $search . '%');
-                    }
-                },
-                'created_at' => function(Builder $query, $search) {
-                    if (
-                        is_array($search)
-                        && array_key_exists('startDate', $search)
-                        && array_key_exists('endDate', $search)
-                        && !is_null($search['startDate'])
-                        && !is_null($search['endDate'])
-                    ) {
-                        $start_date = Carbon::parse($search['startDate']);
-                        $end_date = Carbon::parse($search['endDate']);
-                        $query->where('created_at', '>=', $start_date);
-                        $query->where('created_at', '<=', $end_date);
-                    }
-                },
-                'updated_at' => function(Builder $query, $search) {
-                    if (
-                        is_array($search)
-                        && array_key_exists('startDate', $search)
-                        && array_key_exists('endDate', $search)
-                        && !is_null($search['startDate'])
-                        && !is_null($search['endDate'])
-                    ) {
-                        $start_date = Carbon::parse($search['startDate']);
-                        $end_date = Carbon::parse($search['endDate']);
-                        $query->where('updated_at', '>=', $start_date);
-                        $query->where('updated_at', '<=', $end_date);
-                    }
-                },
-                'user_companies.title' => function(Builder $query, $search) {
-                    if (is_array($search)) {
-                        $query->whereIn('users.company_id', $search);
-                    }
-                },
-                'all' => function(Builder $query, $search) {
-                    if (is_string($search)) {
-                        $query->where(function(Builder $query) use ($search) {
-                            if (is_numeric($search)) {
-                                $query->where('users.id', '=', $search, 'or');
-                            }
-                            $query->where('users.name', 'ilike', '%' . $search . '%', 'or');
-                            $query->where('users.email', 'ilike', '%' . $search . '%', 'or');
-                            $query->where('user_companies.title', 'ilike', '%' . $search . '%', 'or');
-                            $query->whereRaw('CAST(users.created_at AS TEXT) ilike ?', ['%' . $search . '%'], 'or');
-                            $query->whereRaw('CAST(users.updated_at AS TEXT) ilike ?', ['%' . $search . '%'], 'or');
-                        });
-
-                    }
+        return [
+            'id' => function(Builder $query, $search) {
+                if (is_numeric($search)) {
+                    $query->where('users.id', $search);
                 }
-            ];
-        }
-        return $this->filters;
+            },
+            'name' => function(Builder $query, $search) {
+                if (is_string($search)) {
+                    $query->whereRaw('LOWER(users.name) like LOWER(?)', ['%' . $search . '%']);
+                }
+            },
+            'email' => function(Builder $query, $search) {
+                if (is_string($search)) {
+                    $query->whereRaw('LOWER(users.email) like LOWER(?)', ['%' . $search . '%']);
+                }
+            },
+            'created_at' => function(Builder $query, $search) {
+                if (
+                    is_array($search)
+                    && array_key_exists('startDate', $search)
+                    && array_key_exists('endDate', $search)
+                    && !is_null($search['startDate'])
+                    && !is_null($search['endDate'])
+                ) {
+                    $start_date = Carbon::parse($search['startDate']);
+                    $end_date = Carbon::parse($search['endDate']);
+                    $query->where('created_at', '>=', $start_date);
+                    $query->where('created_at', '<=', $end_date);
+                }
+            },
+            'updated_at' => function(Builder $query, $search) {
+                if (
+                    is_array($search)
+                    && array_key_exists('startDate', $search)
+                    && array_key_exists('endDate', $search)
+                    && !is_null($search['startDate'])
+                    && !is_null($search['endDate'])
+                ) {
+                    $start_date = Carbon::parse($search['startDate']);
+                    $end_date = Carbon::parse($search['endDate']);
+                    $query->where('updated_at', '>=', $start_date);
+                    $query->where('updated_at', '<=', $end_date);
+                }
+            },
+            'user_companies.title' => function(Builder $query, $search) {
+                if (is_array($search)) {
+                    $query->whereIn('users.company_id', $search);
+                }
+            },
+            'all' => function(Builder $query, $search) {
+                if (is_string($search)) {
+                    $query->where(function(Builder $query) use ($search) {
+                        if (is_numeric($search)) {
+                            $query->where('users.id', '=', $search, 'or');
+                        }
+                        $query->whereRaw('LOWER(users.name) like LOWER(?)', ['%' . $search . '%'], 'or');
+                        $query->whereRaw('LOWER(users.email) like LOWER(?)', ['%' . $search . '%'], 'or');
+                        $query->whereRaw('LOWER(user_companies.title) like LOWER(?)', ['%' . $search . '%'], 'or');
+
+                        $database_driver = Config::get('database.default');
+                        $cast = 'TEXT';
+                        if ($database_driver == 'mysql') {
+                            $cast = 'CHAR';
+                        }
+
+                        $query->whereRaw('CAST(users.created_at AS ' . $cast . ') like ?', ['%' . $search . '%'], 'or');
+                        $query->whereRaw('CAST(users.updated_at AS ' . $cast . ') like ?', ['%' . $search . '%'], 'or');
+                    });
+
+                }
+            }
+        ];
+    }
+
+
+    /**
+     * Необязательный метод
+     * url для подгрузки данных
+     *
+     * @return string
+     */
+    protected function dataUrl()
+    {
+        return route('users.json');
     }
 
     /**
+     * Необязательный метод
+     * url для загрузки CSV-файла
+     *
+     * @return string
+     */
+    protected function csvUrl()
+    {
+        return route('users.csv');
+    }
+
+
+    /**
+     * Необязательный метод
+     * Поля типа "Дата"
+     *
      * @return array
      */
-    public function getDefaultSorting()
+    protected function dates()
     {
-        if (is_null($this->default_sorting)) {
-            $this->default_sorting = ['field' => 'id', 'dir' => 'asc'];
-        }
-        return $this->default_sorting;
+        return ['created_at', 'updated_at'];
+    }
+
+    /**
+     * Необязательный метод
+     * Фильтры по-умолчанию
+     * Они применяются, если фильтры отсутствуют или пользователь сбросил все фильтры
+     *
+     * @return array
+     */
+    protected function dateFormat()
+    {
+        return 'd.m.Y в H:i:s';
+    }
+
+    /**
+     * Необязательный метод
+     * Сортировка по умолчанию
+     *
+     * @return array
+     */
+    protected function defaultSorting()
+    {
+        return ['field' => 'id', 'dir' => 'asc'];
     }
 }
+
 ```
 
 ### Создайте метод контроллера
@@ -282,21 +338,35 @@ namespace App\Http\Controllers;
 
 
 use App\GridDataProviders\UsersDataProvider;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Paramonov\Grid\GridTable;
 
 class UsersController extends Controller
 {
-    public function index(Request $request)
+    protected $grid;
+
+    public function __construct(UsersDataProvider $users_data_provider)
     {
-        $grid = new GridTable(new UsersDataProvider());
-        if ($request->get('getData')) {
-            return $grid->getData();
-        }
-        return view('users.index', compact('grid'));
+        $this->grid = new GridTable($users_data_provider);
+    }
+
+    public function index()
+    {
+        return view('users.index', ['grid' => $this->grid]);
+    }
+
+    public function gridData()
+    {
+        // Если вы создавали отдельный шаблон для рендеринга ячеек, то этот шаблон передается параметром
+        return $this->grid->getData('users.grid.cells');
+    }
+
+    public function gridCsv()
+    {
+        return $this->grid->getCSV('Users');
     }
 }
+
 ```
 
 ### Создайте шаблон
@@ -311,6 +381,7 @@ class UsersController extends Controller
     <link href="/css/styles.css" rel="stylesheet" />
 </head>
 <body ng-app="app">
+<div class="container">
 {!!
     $grid->render([
         'id' => [
@@ -325,6 +396,7 @@ class UsersController extends Controller
         'email' => [
             'title' => 'E-Mail',
             'type' => 'string',
+            // Можно ячейку описать как Angular-выражение
             'cell' => "<a href='mailto:@{{ item.email }}'>@{{ item.email }}</a>"
         ],
         'user_companies.title' => [
@@ -335,21 +407,43 @@ class UsersController extends Controller
         'created_at' => [
             'title' => 'Создан',
             'type' => 'daterange',
-            'cell' => "@{{ item.created_at | date:'dd.MM.yyyy HH:mm' }}",
             'data-class' => 'text-center',
             'class' => 'col-lg-2'
         ],
         'updated_at' => [
             'title' => 'Обновлен',
             'type' => 'daterange',
-            'cell' => "@{{ item.created_at | date:'dd.MM.yyyy HH:mm' }}",
             'data-class' => 'text-center',
             'class' => 'col-lg-2'
         ]
+    ],
+    // Опционально. По умолчанию подключаются эти компоненты. Это обычные views, можно создавать свои компоненты
+    [
+        'search_all',
+        'column_hider',
+        'download_csv'
     ])
  !!}
+</div>
 
-    <script src="/js/scripts.js" type="application/javascript"></script>
+<script src="/js/scripts.js" type="application/javascript"></script>
 </body>
 </html>
+
 ```
+
+### Опционально: создайте шаблон для рендеринга ячеек
+
+Вы можете создать шаблон для рендеринга любых ячеек таблицы. Они будут генерироваться на сервере с помощью view.
+Каждую ячейку в шаблоне blade можно описать в секциях. В секцию передаются название поля `$field_name` и запись таблицы `$item`
+`resources/views/users/grid/cell.blade.php`
+```
+@section('name')
+    <img src="https://robohash.org/{{ $item->name }}.png?size=16x16" />
+    {{ $item->name }}
+@stop
+```
+
+### Опционально: создайте шаблон для рендеринга csv-ячеек
+
+Вы можете создать шаблон для рендеринга любых ячеек в csv. Удобно, когда нужно в одну ячейку вывести не простое поле, а, например, ФИО или список контактов пользователя (телефоны, email, skype и т.д.). При отсутствии шаблона будет выведено поле записи.
