@@ -123,7 +123,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                             items_per_page: '10'
                         };
                     }
-                    $scope.data_provider.search = angular.merge($scope.default_filters, $scope.data_provider.search);
+                    $scope.data_provider.search = angular.merge({}, $scope.default_filters, $scope.data_provider.search);
                 }
 
                 $scope.loadHider = function (params) {
