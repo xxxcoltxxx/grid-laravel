@@ -21,7 +21,6 @@ abstract class GridDataProvider
     private $default_filters;
     private $data_url;
     private $csv_url;
-    private $templates;
     private $date_format;
     private $dates;
 
