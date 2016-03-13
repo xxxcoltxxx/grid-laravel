@@ -3,6 +3,13 @@
 * [Демо](http://grid-laravel.colt-web.ru/)
 * [Исходный код демо](https://github.com/xxxcoltxxx/grid-laravel-example)
 
+Пакет позволяет
+* Сформировать табличные данные
+* Фильтровать данные и по столбцам, и добавлять свои собственные фильтры
+* Скрывать/отображать колонки таблицы
+* Все фильтры сохраняются в куки, поэтому пользователь при повторном открытии страницы видит таблицу с теми фильтрами, которые были применены у него в прошлый раз
+* Скачивать отфильтрованные данные в CSV
+
 [![Gitter](https://badges.gitter.im/xxxcoltxxx/grid-laravel.svg)](https://gitter.im/xxxcoltxxx/grid-laravel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## Зависимости
