@@ -1,5 +1,5 @@
 <div class="pull-right">
-    <form method="GET" action="{{ $csv_url ? $csv_url : Route::current()->getUri() }}">
+    <form method="GET" action="{{ $csv_url ? $csv_url : '?' }}">
         <button class="btn btn-primary btn-sm" type="submit">
             <i class="fa fa-download"></i>
         </button>

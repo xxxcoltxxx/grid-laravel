@@ -1,7 +1,7 @@
 <div class="table-grid" ng-grid ng-cloak
      ng-init="loadHider({{ json_encode(collect($columns)->where('default_column', true)->keys()->toArray() ?: array_keys($columns)) }})"
 >
-    <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : Route::current()->getUri() }}'" />
+    <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : '?' }}'" />
     <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'" />
     <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'" />
     <input type="hidden" ng-init="default_filters = {{ json_encode($default_filters) }}" />
