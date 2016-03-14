@@ -2,9 +2,10 @@
      ng-init="loadHider({{ json_encode(collect($columns)->where('default_column', true)->keys()->toArray() ?: array_keys($columns)) }})"
 >
     <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : '?' }}'" />
-    <input type="hidden" ng-init="data_provider.sorting.field = '{{ $sorting['field'] }}'" />
-    <input type="hidden" ng-init="data_provider.sorting.dir = '{{ $sorting['dir'] }}'" />
+    <input type="hidden" ng-init="data_provider.sorting.field = default_sorting_field = '{{ $sorting['field'] }}'" />
+    <input type="hidden" ng-init="data_provider.sorting.dir = default_sorting_dir = '{{ $sorting['dir'] }}'" />
     <input type="hidden" ng-init="default_filters = {{ json_encode($default_filters) }}" />
+    <input type="hidden" ng-init="use_cookie = {{ (int) $use_cookie }}" />
 
     <div class="grid-loader" ng-style="{opacity: loading_opacity, visibility: loading ? 'visible' : 'hidden'}">
     </div>

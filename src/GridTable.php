@@ -5,7 +5,6 @@ namespace Paramonov\Grid;
 
 
 use Carbon\Carbon;
-use Eloquent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -196,9 +195,10 @@ class GridTable
 
     }
 
-    public function render($columns, array $components = ['search_all', 'column_hider'], $view = 'grid::main')
+    public function render($columns, array $components = ['search_all', 'column_hider'], $use_cookie = true, $view = 'grid::main')
     {
         return view($view, [
+            'use_cookie' => $use_cookie,
             'data_provider' => $this->data_provider,
             'columns' => $columns,
             'sorting' => $this->getSorting(),
@@ -224,7 +224,7 @@ class GridTable
 
     public function getSorting()
     {
-        if (isset($_COOKIE['data_provider'])) {
+        if (isset($_COOKIE['data_provider']) && \Request::input('use_cookie', 0)) {
             $data_provider = json_decode($_COOKIE['data_provider'], true);
             if (!empty($data_provider['sorting'])) {
                 return $data_provider['sorting'];
