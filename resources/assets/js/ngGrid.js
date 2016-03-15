@@ -111,7 +111,6 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
 
                 function loadParamsFromCookies() {
                     try {
-                        $scope.data_provider = {};
                         var data_provider = angular.fromJson($cookies.get('data_provider'));
                         if (data_provider) {
                             $scope.data_provider = angular.merge($scope.data_provider, data_provider);

@@ -19,6 +19,7 @@ class GridTable
     const TYPE_STRING = 'string';
     const TYPE_DATE_RANGE = 'daterange';
     const TYPE_SELECT = 'select';
+    const TYPE_BOOLEAN = 'boolean';
     const TYPE_MULTI_SELECT = 'multiselect';
 
     public function __construct(GridDataProvider $data_provider)

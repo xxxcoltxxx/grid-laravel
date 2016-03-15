@@ -1,6 +1,4 @@
-<div class="table-grid" ng-grid ng-cloak
-     ng-init="loadHider({{ json_encode(collect($columns)->where('default_column', true)->keys()->toArray() ?: array_keys($columns)) }})"
->
+<div class="table-grid" ng-grid ng-cloak>
     <input type="hidden" ng-init="data_url = '{{ $data_url ? $data_url : '?' }}'" />
     <input type="hidden" ng-init="data_provider.sorting.field = default_sorting_field = '{{ $sorting['field'] }}'" />
     <input type="hidden" ng-init="data_provider.sorting.dir = default_sorting_dir = '{{ $sorting['dir'] }}'" />
@@ -11,7 +9,7 @@
     </div>
 
     {{-- Grid --}}
-    <div class="grid-top">
+    <div class="grid-top" ng-init="loadHider({{ json_encode(collect($columns)->where('default_column', true)->keys()->toArray() ?: array_keys($columns)) }})">
         <div class="form-group row">
             {{-- Компоненты --}}
 
