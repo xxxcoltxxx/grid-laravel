@@ -2,7 +2,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
     .directive('ngGrid', function () {
         return {
             restrict: 'A',
-            controller: ['$scope', '$http', '$cookies', '$timeout', '$q', function ($scope, $http, $cookies, $timeout, $q) {
+            controller: ['$scope', '$http', '$cookies', '$timeout', '$q', '$sce', function ($scope, $http, $cookies, $timeout, $q, $sce) {
                 $scope.data_provider = {
                     search: {},
                     sorting: {},
@@ -10,6 +10,10 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                         current_page: 1,
                         items_per_page: '10'
                     }
+                };
+
+                $scope.trustAsHtml = function(string) {
+                    return $sce.trustAsHtml(string);
                 };
 
                 $scope.columns_hider = [];
