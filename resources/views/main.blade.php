@@ -69,7 +69,7 @@
                         @if (isset($column['cell']))
                             {!! $column['cell'] !!}
                         @else
-                            <span ng-bind-html="item.{!! $field !!}"></span>
+                            <span ng-bind-html="trustAsHtml(item.{!! $field !!})"></span>
                         @endif
                     </td>
                 @endforeach
