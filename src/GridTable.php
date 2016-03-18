@@ -92,7 +92,9 @@ class GridTable
             foreach ($templates as $cell_name => $viewFunc) {
 
                 if (in_array($cell_name, $this->data_provider->getDates())){
-                    $item->{$cell_name} = \Carbon\Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
+                    if (! $item->{$cell_name} instanceof Carbon){
+                        $item->{$cell_name} = \Carbon\Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
+                    }
                 }
 
                 $item_[$cell_name] = $viewFunc($item);
