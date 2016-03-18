@@ -62,7 +62,18 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                 };
 
                 $scope.clearPicker = function (scope) {
-                    $scope.data_provider.search[scope] = {startDate: null, endDate: null};
+                    var counter = 0 ;
+                    var element = $scope.data_provider.search;
+                    var splitted = scope.split('.');
+                    for (var i in splitted){
+                        counter++;
+                        if (counter == splitted.length){
+                            break;
+                        }
+                        element = element[splitted[i]];
+                    }
+
+                    element[splitted.pop()] =  {startDate: null, endDate: null};
                 };
 
                 $scope.defaultSearchPicker = function (scope) {
