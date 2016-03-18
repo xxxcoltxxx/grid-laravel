@@ -203,6 +203,12 @@ class GridTable
 
     }
 
+    public function setName($name)
+    {
+        $this->data_provider->setName($name);
+        return $this;
+    }
+
     public function render($columns, array $components = ['search_all', 'column_hider'], $use_cookie = true, $view = 'grid::main')
     {
         return view($view, [
@@ -216,6 +222,7 @@ class GridTable
             'headers' => $this->getHeaders($columns ?: array_keys($this->data_provider->getFilters())),
             'system_fields' => $this->system_fields,
             'default_filters' => $this->data_provider->getDefaultFilters(),
+            'grid_name' => $this->data_provider->getName(),
         ]);
     }
 

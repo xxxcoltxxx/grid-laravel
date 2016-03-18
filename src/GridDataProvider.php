@@ -24,6 +24,11 @@ abstract class GridDataProvider
     private $date_format;
     private $dates;
 
+    /**
+     * @var string Название грида
+     */
+    protected $name = 'grid';
+
 
     /**
      * Запрос для выборки данных для таблицы
@@ -262,5 +267,15 @@ abstract class GridDataProvider
             $filters[$field] = ['startDate' => null, 'endDate' => null];
         }
         return $filters;
+    }
+
+    final public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    final public function getName()
+    {
+        return $this->name;
     }
 }
