@@ -158,8 +158,8 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
 
                     if ($scope.data_provider.sorting == undefined) {
                         $scope.data_provider.sorting = {
-                            dir: default_sorting_dir,
-                            field: default_sorting_field
+                            dir: $scope.default_sorting_dir,
+                            field: $scope.default_sorting_field
                         }
                     }
                     $scope.data_provider.search = angular.merge({}, $scope.default_filters, $scope.data_provider.search);
