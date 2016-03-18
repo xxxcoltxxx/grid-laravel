@@ -9,7 +9,7 @@
     </div>
 
     {{-- Grid --}}
-    <div class="grid-top" ng-init="loadHider({{ json_encode(collect($columns)->where('default_column', true)->keys()->toArray() ?: array_keys($columns)) }})">
+    <div class="grid-top" ng-init="loadHider({{ json_encode(collect($columns)->where('default_column', true)->keys()->toArray() ?: array_keys($columns)) }}, '{{ $grid_name }}')">
         <div class="form-group row">
             {{-- Компоненты --}}
 

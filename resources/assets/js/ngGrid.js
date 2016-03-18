@@ -12,7 +12,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     }
                 };
 
-                $scope.trustAsHtml = function(string) {
+                $scope.trustAsHtml = function (string) {
                     return $sce.trustAsHtml(string);
                 };
 
@@ -62,18 +62,18 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                 };
 
                 $scope.clearPicker = function (scope) {
-                    var counter = 0 ;
+                    var counter = 0;
                     var element = $scope.data_provider.search;
                     var splitted = scope.split('.');
-                    for (var i in splitted){
+                    for (var i in splitted) {
                         counter++;
-                        if (counter == splitted.length){
+                        if (counter == splitted.length) {
                             break;
                         }
                         element = element[splitted[i]];
                     }
 
-                    element[splitted.pop()] =  {startDate: null, endDate: null};
+                    element[splitted.pop()] = {startDate: null, endDate: null};
                 };
 
                 $scope.defaultSearchPicker = function (scope) {
@@ -89,7 +89,11 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     $scope.loading = true;
                     $scope.loading_opacity = max_opacity;
 
-                    var params = angular.merge({}, angular.fromJson(angular.toJson($scope.data_provider)), {getData: true, column_names: $scope.headers, use_cookie: $scope.use_cookie});
+                    var params = angular.merge({}, angular.fromJson(angular.toJson($scope.data_provider)), {
+                        getData: true,
+                        column_names: $scope.headers,
+                        use_cookie: $scope.use_cookie
+                    });
                     $http.get(
                         $scope.data_url,
                         {
@@ -116,21 +120,21 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                         return;
                     }
                     var params = {
-                        path: location.pathname,
+                        path: $scope.grid_name != 'grid' ? '/' : location.pathname ,
                         expires: new Date(+new Date + 14 * 24 * 60 * 60 * 1000)
                     };
-                    $cookies.put('data_provider', angular.toJson($scope.data_provider), params);
-                    $cookies.put('columnsHider', angular.toJson($scope.columns_hider), params);
-                    $cookies.put('showFilters', angular.toJson($scope.show_filters), params);
+                    $scope.setCookie('data_provider', angular.toJson($scope.data_provider), params);
+                    $scope.setCookie('columnsHider', angular.toJson($scope.columns_hider), params);
+                    $scope.setCookie('showFilters', angular.toJson($scope.show_filters), params);
                 }
 
                 function loadParamsFromCookies() {
                     try {
-                        var data_provider = angular.fromJson($cookies.get('data_provider'));
+                        var data_provider = angular.fromJson($scope.getCookie('data_provider'));
                         if (data_provider) {
                             $scope.data_provider = angular.merge($scope.data_provider, data_provider);
                         }
-                        $scope.show_filters = typeof $cookies.get('showFilters') == 'undefined' ? false : $cookies.get('showFilters') === 'true';
+                        $scope.show_filters = typeof $scope.getCookie('showFilters') == 'undefined' ? false : $scope.getCookie('showFilters') === 'true';
                     } catch (e) {
 
                     }
@@ -143,6 +147,15 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                             items_per_page: '10'
                         };
                     }
+
+                    if ($scope.data_provider.sorting != undefined && $scope.data_provider.sorting.field && $scope.headers ){
+
+                        if (Object.keys($scope.headers).indexOf($scope.data_provider.sorting.field) == -1){
+                            delete $scope.data_provider.sorting;
+                        }
+
+                    }
+
                     if ($scope.data_provider.sorting == undefined) {
                         $scope.data_provider.sorting = {
                             dir: default_sorting_dir,
@@ -152,13 +165,21 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     $scope.data_provider.search = angular.merge({}, $scope.default_filters, $scope.data_provider.search);
                 }
 
-                $scope.loadHider = function (params) {
+                $scope.getCookie = function (cookie_name) {
+                    return $cookies.get($scope.grid_name + '-' + cookie_name);
+                }
+                $scope.setCookie = function (cookie_name, value, params) {
+                    $cookies.put($scope.grid_name + '-' + cookie_name, value, params);
+                }
+
+                $scope.loadHider = function (params, grid_name) {
+                    $scope.grid_name = grid_name;
                     if (!$scope.use_cookie) {
                         $scope.columns_hider = params;
                         return;
                     }
                     try {
-                        var columns_hider = angular.fromJson($cookies.get('columnsHider'));
+                        var columns_hider = angular.fromJson($scope.getCookie('columnsHider'));
                         if (columns_hider) {
                             $scope.columns_hider = columns_hider;
                         } else {
@@ -169,7 +190,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     }
                 };
 
-                $timeout(function() {
+                $timeout(function () {
                     if ($scope.use_cookie == 1) {
                         loadParamsFromCookies();
                     }
