@@ -188,6 +188,22 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     } catch (e) {
                         $scope.columns_hider = params;
                     }
+
+                    $scope.all_grid_columns = params;
+
+                    try {
+                        var old_all_grid_columns = angular.fromJson($scope.getCookie('allGridColumns'));
+                        angular.forEach($scope.all_grid_columns, function(column) {
+                            if (old_all_grid_columns.indexOf(column) == -1){
+                                $scope.columns_hider.push(column);
+                            }
+                        })
+                    } catch (e) {
+
+                    }
+
+                    $scope.setCookie('allGridColumns', angular.toJson(params));
+
                 };
 
                 $timeout(function () {
