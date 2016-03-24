@@ -77,7 +77,7 @@ class GridTable
         }
 
         $query = $this->data_provider->getQuery();
-        if ($limit) {
+        if ($limit && $this->data_provider->getPagination()) {
             $query->take($limit)->skip(($page - 1) * $limit);
         }
         return $query->get();
@@ -113,8 +113,8 @@ class GridTable
 
         $searches = $this->getRequestData('search');
         $sorting = $this->getRequestData('sorting', $this->getSorting());
-        $limit = $this->getRequestData('pagination', $this->data_provider->getPagination()->getLimit(), 'items_per_page');
-        if (!(int) $limit) {
+        $limit = $this->getRequestData('pagination', $this->data_provider->getPagination() ? $this->data_provider->getPagination()->getLimit() : null, 'items_per_page');
+        if (!(int) $limit && $this->data_provider->getPagination()) {
             $limit = $this->data_provider->getPagination()->getLimit();
         }
         $page = $this->getRequestData('pagination', 1, 'current_page');
