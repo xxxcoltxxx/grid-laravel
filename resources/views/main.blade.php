@@ -4,7 +4,6 @@
     <input type="hidden" ng-init="data_provider.sorting.dir = default_sorting_dir = '{{ $sorting['dir'] }}'" />
     <input type="hidden" ng-init="default_filters = {{ json_encode($default_filters) }}" />
     <input type="hidden" ng-init="use_cookie = {{ (int) $use_cookie }}" />
-
     <div class="grid-loader" ng-style="{opacity: loading_opacity, visibility: loading ? 'visible' : 'hidden'}">
     </div>
 
@@ -77,7 +76,7 @@
             </tbody>
         </table>
     </div>
-
+    @if($data_provider->getPagination())
     {{-- Пагинация - селектор кол-ва итемов --}}
     <div class="col-lg-2 pagination">
         @include('grid::grid.pagination.item_per_page')
@@ -92,6 +91,7 @@
     <div class="col-lg-2 pagination text-right">
         @include('grid::grid.pagination.info')
     </div>
+    @endif
 
     <div class="clearfix"></div>
 </div>
