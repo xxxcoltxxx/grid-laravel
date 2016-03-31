@@ -122,7 +122,7 @@ class GridTable
 
         $this->buildQuery($searches);
 
-        $total = $this->data_provider->getQuery()->count();
+        $total = $this->data_provider->getCount();
         $data = $this->makeQuery($sorting, $limit, $page);
 
         if ($template) {
