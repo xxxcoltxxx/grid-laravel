@@ -23,6 +23,7 @@ abstract class GridDataProvider
     private $csv_url;
     private $date_format;
     private $dates;
+    private $count;
 
     /**
      * @var string Название грида
@@ -60,6 +61,23 @@ abstract class GridDataProvider
     protected function pagination()
     {
         return new GridPagination();
+    }
+
+    /**
+     *  Получение кол-ва страниц
+     * @return integer
+     */
+    final public function getCount()
+    {
+        if (is_null($this->count)) {
+            $this->count = $this->count();
+        }
+        return $this->count;
+    }
+
+    protected function count()
+    {
+        return $this->getQuery()->count();
     }
 
 
