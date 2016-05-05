@@ -282,7 +282,7 @@ abstract class GridDataProvider
     {
         $filters = [];
         foreach ($this->getDates() as $field) {
-            $filters[$field] = ['startDate' => null, 'endDate' => null];
+            array_set($filters, $field, ['startDate' => null, 'endDate' => null]);
         }
         return $filters;
     }

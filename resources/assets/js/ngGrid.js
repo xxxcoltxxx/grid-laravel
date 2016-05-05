@@ -12,8 +12,11 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     }
                 };
 
-                $scope.trustAsHtml = function (string) {
-                    return $sce.trustAsHtml(string);
+                $scope.trustAsHtml = function(string) {
+                    if (string == null) {
+                        string = "";
+                    }
+                    return $sce.trustAsHtml(string.toString());
                 };
 
                 $scope.columns_hider = [];
@@ -21,6 +24,8 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
 
                 $scope.loading = false;
                 $scope.loading_opacity = 0;
+
+                $scope.default_colums_json = null;
 
                 var ajaxDelayTimeout = 300,
                     ajaxDelay = false,
@@ -82,6 +87,11 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                     }
                 };
 
+                $scope.$on('grid.update', function() {
+                    $scope.loadGrid();
+
+                });
+
                 function loadGrid() {
                     canceler.resolve();
                     canceler = $q.defer();
@@ -120,7 +130,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                         return;
                     }
                     var params = {
-                        path: $scope.grid_name != 'grid' ? '/' : location.pathname ,
+                        path:  $scope.grid_name == 'grid' ? location.pathname : '/',
                         expires: new Date(+new Date + 14 * 24 * 60 * 60 * 1000)
                     };
                     $scope.setCookie('data_provider', angular.toJson($scope.data_provider), params);
