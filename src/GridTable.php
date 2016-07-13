@@ -7,6 +7,7 @@ namespace Paramonov\Grid;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 class GridTable
 {
@@ -63,7 +64,7 @@ class GridTable
 
     private function getRequestData($key, $default = null, $access_string = null)
     {
-        $this->request = $this->request ?: \Request::capture();
+        $this->request = $this->request ?: app(Request::class);
         $data = json_decode($this->request->input($key), true);
         return $access_string ? array_get($data, $access_string, $default) : ($data ?: $default);
 
