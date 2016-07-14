@@ -37,7 +37,7 @@ class GridTable
         $filters = $this->data_provider->getFilters();
         foreach ($searches as $alias => $search) {
             $alias = $prefix . $alias;
-            if (!$search) {
+            if (! is_numeric($search) && empty($search)) {
                 continue;
             }
 
