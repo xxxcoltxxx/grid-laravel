@@ -6,4 +6,5 @@ return [
     'rows-not-found' => 'Records not found',
     'loading' => 'Loading...',
     'select.data_count' => '{0} selected',
+    'reset-columns' => 'Default columns',
 ];

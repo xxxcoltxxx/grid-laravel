@@ -49,7 +49,7 @@
             {{-- Фильтры колонок --}}
             <tr>
                 @foreach($columns as $field => $column)
-                    <th ng-show="showColumn('{{ $field }}') && show_filters"
+                    <th ng-show="@if (empty($column['system'])) showColumn('{{ $field }}') && @endif show_filters"
                         @if(isset($column['filter-class'])) class="{{ $column['filter-class'] }}" @endif>
                         @if(isset($column['type']))
                             @include('grid::filters.' . $column['type'])
@@ -64,7 +64,7 @@
             {{-- Данные --}}
             <tr ng-show="data != undefined" ng-repeat="item in data" {!! array_get($components, 'row-attrs') !!}>
                 @foreach($columns as $field => $column)
-                    <td ng-show="showColumn('{{ $field }}')"
+                    <td @if (empty($column['system'])) ng-show="showColumn('{{ $field }}')" @endif
                         @if(isset($column['data-class'])) class="{{ $column['data-class'] }}" @endif>
                         @if (isset($column['cell']))
                             {!! $column['cell'] !!}
