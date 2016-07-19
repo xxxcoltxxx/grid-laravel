@@ -10,8 +10,10 @@
         data-count-selected-text="@lang('grid::main.select.data_count')"
         selectpicker
         ng-model="data_provider.search.{{ $field }}"
+        ng-change="data_provider.search.{{ $field }} = clearSelect(data_provider.search.{{ $field }})"
 >
-    <option>--//--</option>
+    <option value="">--//--</option>
+    <option data-divider="true"></option>
     @foreach($column['options'] as $value => $option)
         <option value="{{ $value }}">{{ $option }}</option>
     @endforeach
