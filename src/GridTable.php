@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Paramonov\Grid;
-
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +12,7 @@ class GridTable
     private $data_provider;
     private $request;
     private $system_fields = [
-        'tools'
+        'tools',
     ];
 
     const TYPE_STRING = 'string';
@@ -36,15 +34,15 @@ class GridTable
 
         $filters = $this->data_provider->getFilters();
         foreach ($searches as $alias => $search) {
-            $alias = $prefix . $alias;
-            if (! is_numeric($search) && ! is_bool($search) && empty($search)) {
+            $alias = $prefix.$alias;
+            if (!is_numeric($search) && !is_bool($search) && empty($search)) {
                 continue;
             }
 
             if (isset($filters[$alias])) {
                 $filters[$alias] ($this->data_provider->getQuery(), $search);
             } else {
-                $this->buildQuery($search, $alias . '.');
+                $this->buildQuery($search, $alias.'.');
             }
         }
     }
@@ -53,11 +51,11 @@ class GridTable
     {
         $main_table = $this->data_provider->getQuery()->getModel()->getTable();
         // Добавляем селекты для уникальности полей в выборке
-        /** @var Builder */
-        $this->data_provider->getQuery()->addSelect($main_table . '.*');
+        /* @var Builder */
+        $this->data_provider->getQuery()->addSelect($main_table.'.*');
         foreach ($columns as $field) {
             if (strpos($field, '.')) {
-                $this->data_provider->getQuery()->addSelect($field . ' as ' . str_replace('.', ':', $field));
+                $this->data_provider->getQuery()->addSelect($field.' as '.str_replace('.', ':', $field));
             }
         }
     }
@@ -66,8 +64,8 @@ class GridTable
     {
         $this->request = $this->request ?: app(Request::class);
         $data = json_decode($this->request->input($key), true);
-        return $access_string ? array_get($data, $access_string, $default) : ($data ?: $default);
 
+        return $access_string ? array_get($data, $access_string, $default) : ($data ?: $default);
     }
 
     private function makeQuery($sorting = null, $limit = null, $page = null)
@@ -81,6 +79,7 @@ class GridTable
         if ($limit && $this->data_provider->getPagination()) {
             $query->take($limit)->skip(($page - 1) * $limit);
         }
+
         return $query->get();
     }
 
@@ -88,12 +87,10 @@ class GridTable
     {
         $result = [];
         $data->map(function ($item) use ($templates, &$result) {
-
             $item_ = !is_array($item) ? $item->toArray() : $item;
             foreach ($templates as $cell_name => $viewFunc) {
-
-                if (in_array($cell_name, $this->data_provider->getDates())){
-                    if ($item->{$cell_name} && !$item->{$cell_name} instanceof Carbon){
+                if (in_array($cell_name, $this->data_provider->getDates())) {
+                    if ($item->{$cell_name} && !$item->{$cell_name} instanceof Carbon) {
                         $item->{$cell_name} = \Carbon\Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
                     }
                 }
@@ -101,7 +98,6 @@ class GridTable
                 $item_[$cell_name] = $viewFunc($item);
             }
             $result[] = $item_;
-
         });
 
         return $result;
@@ -130,8 +126,9 @@ class GridTable
             $templates = [];
              // TODO: Избавиться от foreach
             foreach ($columns as $field_name) {
-                $templates[$field_name] = function($item) use ($template, $field_name) {
+                $templates[$field_name] = function ($item) use ($template, $field_name) {
                     $field_name = $this->encodeField($field_name);
+
                     return view('grid::cell', compact('template', 'field_name', 'item'))->render();
                 };
             }
@@ -139,10 +136,10 @@ class GridTable
         }
 
         return [
-            'data' => $this->formatData($data),
-            'limit' => $limit,
+            'data'    => $this->formatData($data),
+            'limit'   => $limit,
             'sorting' => $sorting,
-            'total' => $total,
+            'total'   => $total,
         ];
     }
 
@@ -150,8 +147,9 @@ class GridTable
     {
         $output = [];
         foreach ($data as $cells) {
-            $output[] = '"' . implode('";"', $cells) . '"';
+            $output[] = '"'.implode('";"', $cells).'"';
         }
+
         return implode("\n", $output);
     }
 
@@ -178,13 +176,14 @@ class GridTable
         $data = $this->makeQuery($sorting);
         $templates = [];
 
-        /**
+        /*
          * @TODO Избавиться от foreach
          */
 
         foreach (array_diff($columns, $this->system_fields) as $field_name) {
             $templates[$field_name] = function ($item) use ($template, $field_name) {
                 $field_name = $this->encodeField($field_name);
+
                 return str_replace(["\n", '\n', '  '], ['', "\r\n", ''], $this->encodeForCsv(view('grid::cell', compact('field_name', 'item', 'template'))->render()));
             };
         }
@@ -199,31 +198,31 @@ class GridTable
             }
             $csv_data[] = $cells;
         }
-        return response($this->makeCsvOutput($csv_data))->header('Content-Disposition', 'attachment; filename="' . $file_name . '.csv"');
 
-
+        return response($this->makeCsvOutput($csv_data))->header('Content-Disposition', 'attachment; filename="'.$file_name.'.csv"');
     }
 
     public function setName($name)
     {
         $this->data_provider->setName($name);
+
         return $this;
     }
 
     public function render($columns, array $components = ['search_all', 'column_hider'], $use_cookie = true, $view = 'grid::main')
     {
         return view($view, [
-            'use_cookie' => $use_cookie,
-            'data_provider' => $this->data_provider,
-            'columns' => $columns,
-            'sorting' => $this->getSorting(),
-            'data_url' => $this->data_provider->getDataUrl(),
-            'csv_url' => $this->data_provider->getCsvUrl(),
-            'components' => $components,
-            'headers' => $this->getHeaders($columns ?: array_keys($this->data_provider->getFilters())),
-            'system_fields' => $this->system_fields,
+            'use_cookie'      => $use_cookie,
+            'data_provider'   => $this->data_provider,
+            'columns'         => $columns,
+            'sorting'         => $this->getSorting(),
+            'data_url'        => $this->data_provider->getDataUrl(),
+            'csv_url'         => $this->data_provider->getCsvUrl(),
+            'components'      => $components,
+            'headers'         => $this->getHeaders($columns ?: array_keys($this->data_provider->getFilters())),
+            'system_fields'   => $this->system_fields,
             'default_filters' => $this->data_provider->getDefaultFilters(),
-            'grid_name' => $this->data_provider->getName(),
+            'grid_name'       => $this->data_provider->getName(),
         ]);
     }
 
@@ -233,10 +232,9 @@ class GridTable
         foreach ($columns as $column_name => $column) {
             $headers[$column_name] = $column['title'];
         }
+
         return $headers;
-
     }
-
 
     public function getSorting()
     {
@@ -254,6 +252,7 @@ class GridTable
 
     /**
      * @param $data
+     *
      * @return mixed
      */
     private function formatData($data)
@@ -276,6 +275,7 @@ class GridTable
                 }
             }
         }
+
         return $grid_data;
     }
 
