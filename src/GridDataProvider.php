@@ -4,7 +4,9 @@
 namespace Paramonov\Grid;
 
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 
 abstract class GridDataProvider
@@ -285,6 +287,40 @@ abstract class GridDataProvider
             array_set($filters, $field, ['startDate' => null, 'endDate' => null]);
         }
         return $filters;
+    }
+
+    /**
+     * Метод для конвертации полученных из БД данных в данные, которые должны вернуться для грида
+     *
+     * @param $item
+     *
+     * @return array
+     */
+    public function transform($item)
+    {
+        $data = [];
+        if ($item instanceof Model) {
+            $item = $item->toArray();
+        }
+        foreach ($item as $key => $value) {
+            $key = $this->decodeField($key);
+            if ($this->getDateFormat() && in_array($key, $this->getDates())) {
+                $value = $value ? Carbon::parse($value)->format($this->getDateFormat()) : null;
+            }
+            $pairs = explode('.', $key);
+            if (count($pairs) > 1) {
+                $data [$pairs[0]] [$pairs[1]] = $value;
+            } else {
+                $data [$key] = $value;
+            }
+        }
+
+        return $data;
+    }
+
+    private function decodeField($field)
+    {
+        return str_replace(':', '.', $field);
     }
 
     final public function setName($name)
