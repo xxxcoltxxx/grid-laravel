@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'recordsCount' => 'Page',
-    'search-all' => 'Search for all columns',
-    'rows-not-found' => 'Records not found',
-    'loading' => 'Loading...',
+    'recordsCount'      => 'Page',
+    'search-all'        => 'Search for all columns',
+    'rows-not-found'    => 'Records not found',
+    'loading'           => 'Loading...',
     'select.data_count' => '{0} selected',
-    'reset-columns' => 'Default columns',
+    'reset-columns'     => 'Default columns',
 ];

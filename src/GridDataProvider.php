@@ -1,13 +1,10 @@
 <?php
 
-
 namespace Paramonov\Grid;
-
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-
 
 abstract class GridDataProvider
 {
@@ -32,17 +29,15 @@ abstract class GridDataProvider
      */
     protected $name = 'grid';
 
-
     /**
-     * Запрос для выборки данных для таблицы
+     * Запрос для выборки данных для таблицы.
      *
      * @return Builder
      */
     abstract protected function query();
 
-
     /**
-     * Получение инстанса запроса
+     * Получение инстанса запроса.
      *
      * @return Builder
      */
@@ -51,12 +46,12 @@ abstract class GridDataProvider
         if (is_null($this->query)) {
             $this->query = $this->query();
         }
+
         return $this->query;
     }
 
-
     /**
-     * Пагинация
+     * Пагинация.
      *
      * @return GridPagination
      */
@@ -66,14 +61,16 @@ abstract class GridDataProvider
     }
 
     /**
-     *  Получение кол-ва страниц
-     * @return integer
+     *  Получение кол-ва страниц.
+     *
+     * @return int
      */
     final public function getCount()
     {
         if (is_null($this->count)) {
             $this->count = $this->count();
         }
+
         return $this->count;
     }
 
@@ -82,9 +79,8 @@ abstract class GridDataProvider
         return $this->getQuery()->count();
     }
 
-
     /**
-     * Получение класса пагинации
+     * Получение класса пагинации.
      *
      * @return GridPagination
      */
@@ -93,21 +89,20 @@ abstract class GridDataProvider
         if (is_null($this->pagination)) {
             $this->pagination = $this->pagination();
         }
+
         return $this->pagination;
     }
 
-
     /**
      * Фильтрация выборки. Аналог scope в модели
-     * Ключи массива должны совпадать с ключами массива из view
+     * Ключи массива должны совпадать с ключами массива из view.
      *
      * @return \Closure[]
      */
     abstract protected function filters();
 
-
     /**
-     * Получение фильтров
+     * Получение фильтров.
      *
      * @return \Closure[]
      */
@@ -116,12 +111,12 @@ abstract class GridDataProvider
         if (is_null($this->filters)) {
             $this->filters = $this->filters();
         }
+
         return $this->filters;
     }
 
-
     /**
-     * Сортировка по умолчанию
+     * Сортировка по умолчанию.
      *
      * @return array
      */
@@ -129,13 +124,12 @@ abstract class GridDataProvider
     {
         return [
             'field' => 'id',
-            'dir' => 'asc'
+            'dir'   => 'asc',
         ];
     }
 
-
     /**
-     * Получение сортировки по умолчанию
+     * Получение сортировки по умолчанию.
      *
      * @return array
      */
@@ -144,12 +138,12 @@ abstract class GridDataProvider
         if (is_null($this->default_sorting)) {
             $this->default_sorting = $this->defaultSorting();
         }
+
         return $this->default_sorting;
     }
 
-
     /**
-     * url для подгрузки данных
+     * url для подгрузки данных.
      *
      * @return string
      */
@@ -158,9 +152,8 @@ abstract class GridDataProvider
         return '';
     }
 
-
     /**
-     * Получение url для подгрузки данных
+     * Получение url для подгрузки данных.
      *
      * @return string
      */
@@ -169,12 +162,12 @@ abstract class GridDataProvider
         if (is_null($this->data_url)) {
             $this->data_url = $this->dataUrl();
         }
+
         return $this->data_url;
     }
 
-
     /**
-     * url для загрузки CSV-файла
+     * url для загрузки CSV-файла.
      *
      * @return string
      */
@@ -183,9 +176,8 @@ abstract class GridDataProvider
         return '';
     }
 
-
     /**
-     * Получение url для загрузки CSV-файла
+     * Получение url для загрузки CSV-файла.
      *
      * @return string
      */
@@ -194,9 +186,9 @@ abstract class GridDataProvider
         if (is_null($this->csv_url)) {
             $this->csv_url = $this->csvUrl();
         }
+
         return $this->csv_url;
     }
-
 
     /**
      * Формат вывода дат
@@ -208,7 +200,6 @@ abstract class GridDataProvider
         return 'Y-m-d';
     }
 
-
     /**
      * Получение формата вывода дат
      *
@@ -219,12 +210,12 @@ abstract class GridDataProvider
         if (is_null($this->date_format)) {
             $this->date_format = $this->dateFormat();
         }
+
         return $this->date_format;
     }
 
-
     /**
-     * Поля типа "Дата"
+     * Поля типа "Дата".
      *
      * @return array
      */
@@ -233,9 +224,8 @@ abstract class GridDataProvider
         return [];
     }
 
-
     /**
-     * Получение полей типа "Дата"
+     * Получение полей типа "Дата".
      *
      * @return array
      */
@@ -244,13 +234,13 @@ abstract class GridDataProvider
         if (is_null($this->dates)) {
             $this->dates = $this->dates();
         }
+
         return $this->dates;
     }
 
-
     /**
      * Фильтры по-умолчанию
-     * Они применяются, если фильтры отсутствуют или пользователь сбросил все фильтры
+     * Они применяются, если фильтры отсутствуют или пользователь сбросил все фильтры.
      *
      * @return array
      */
@@ -259,9 +249,8 @@ abstract class GridDataProvider
         return [];
     }
 
-
     /**
-     * Получение фильтров по-умолчанию
+     * Получение фильтров по-умолчанию.
      *
      * @return mixed
      */
@@ -270,13 +259,13 @@ abstract class GridDataProvider
         if (is_null($this->default_filters)) {
             $this->default_filters = array_merge($this->getDefaultDates(), $this->defaultFilters());
         }
+
         return $this->default_filters;
     }
 
-
     /**
      * Получение фильтров по-умолчанию для полей типа "дата"
-     * Поля с возможностью выбора периода должны быть с полями startDate, endDate, иначе в консоли сыпятся ошибки
+     * Поля с возможностью выбора периода должны быть с полями startDate, endDate, иначе в консоли сыпятся ошибки.
      *
      * @return array
      */
@@ -286,11 +275,12 @@ abstract class GridDataProvider
         foreach ($this->getDates() as $field) {
             array_set($filters, $field, ['startDate' => null, 'endDate' => null]);
         }
+
         return $filters;
     }
 
     /**
-     * Метод для конвертации полученных из БД данных в данные, которые должны вернуться для грида
+     * Метод для конвертации полученных из БД данных в данные, которые должны вернуться для грида.
      *
      * @param $item
      *

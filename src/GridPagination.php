@@ -2,7 +2,6 @@
 
 namespace Paramonov\Grid;
 
-
 class GridPagination
 {
     protected $limits;
@@ -11,9 +10,10 @@ class GridPagination
 
     /**
      * GridPagination constructor.
+     *
      * @param array $limits
-     * @param int $page
-     * @param int $default_index
+     * @param int   $page
+     * @param int   $default_index
      */
     public function __construct(array $limits = [10, 25, 50], $page = 1, $default_index = 0)
     {
@@ -50,6 +50,7 @@ class GridPagination
                 return $limit;
             }
         }
+
         return $this->getDefault();
     }
 }
