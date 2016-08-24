@@ -7,7 +7,7 @@
         data-dropdown-align-right="true"
         selectpicker
         ng-model="columns_hider"
-        ng-change="columns_hider = clearSelect(columns_hider, default_colums)"
+        ng-change="columns_hider = clearSelect(columns_hider, default_columns)"
 >
 
     @foreach($columns as $field => $column)

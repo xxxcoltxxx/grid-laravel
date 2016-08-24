@@ -25,7 +25,7 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
                 $scope.loading = false;
                 $scope.loading_opacity = 0;
 
-                $scope.default_colums = null;
+                $scope.default_columns = null;
 
                 var ajaxDelayTimeout = 300,
                     ajaxDelay = false,
@@ -223,6 +223,9 @@ angular.module('ngGrid', ['ui.bootstrap', 'daterangepicker', 'ngCookies', 'ngSan
 
                     $scope.setCookie('allGridColumns', angular.toJson(params));
 
+                    if ($scope.default_columns == null && params) {
+                        $scope.default_columns = params;
+                    }
                 };
 
                 $timeout(function () {

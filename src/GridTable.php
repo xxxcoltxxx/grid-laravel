@@ -6,8 +6,8 @@ namespace Paramonov\Grid;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GridTable
 {
@@ -86,7 +86,7 @@ class GridTable
 
     private function mapDataWithTemplates($data, $templates)
     {
-        $result = [];
+        $result = collect();
         $data->map(function ($item) use ($templates, &$result) {
 
             $item_ = !is_array($item) ? $item->toArray() : $item;
@@ -100,7 +100,7 @@ class GridTable
 
                 $item_[$cell_name] = $viewFunc($item);
             }
-            $result[] = $item_;
+            $result->push($item_);
 
         });
 
@@ -125,7 +125,6 @@ class GridTable
 
         $total = $this->data_provider->getCount();
         $data = $this->makeQuery($sorting, $limit, $page);
-
         if ($template) {
             $templates = [];
              // TODO: Избавиться от foreach
@@ -148,11 +147,12 @@ class GridTable
 
     private function makeCsvOutput($data)
     {
-        $output = [];
+        $output = collect();
         foreach ($data as $cells) {
-            $output[] = '"' . implode('";"', $cells) . '"';
+            $output->push('"' . implode('";"', $cells) . '"');
         }
-        return implode("\n", $output);
+
+        return $output->implode(PHP_EOL);
     }
 
     private function encodeForCsv($string)
@@ -240,9 +240,9 @@ class GridTable
 
     public function getSorting()
     {
-        if (isset($_COOKIE['data_provider']) && \Request::input('use_cookie', 0)) {
+        if (isset($_COOKIE['data_provider']) && request('use_cookie', 0)) {
             $data_provider = json_decode($_COOKIE['data_provider'], true);
-            if (!empty($data_provider['sorting'])) {
+            if (! empty($data_provider['sorting'])) {
                 return $data_provider['sorting'];
             } else {
                 return $this->data_provider->getDefaultSorting();
@@ -253,39 +253,18 @@ class GridTable
     }
 
     /**
-     * @param $data
+     * @param Collection $data
      * @return mixed
      */
-    private function formatData($data)
+    private function formatData(Collection $data)
     {
-        $grid_data = [];
-        foreach ($data as $i => $item) {
-            if ($item instanceof Model) {
-                $item = $item->toArray();
-            }
-            foreach ($item as $key => $value) {
-                $key = $this->decodeField($key);
-                if ($this->data_provider->getDates() && $this->data_provider->getDateFormat() && in_array($key, $this->data_provider->getDates())) {
-                    $value = $value ? Carbon::parse($value)->format($this->data_provider->getDateFormat()) : null;
-                }
-                $pairs = explode('.', $key);
-                if (count($pairs) > 1) {
-                    $grid_data [$i] [$pairs[0]] [$pairs[1]] = $value;
-                } else {
-                    $grid_data [$i] [$key] = $value;
-                }
-            }
-        }
-        return $grid_data;
+        return $data->transform(function($item) {
+            return $this->data_provider->transform($item);
+        });
     }
 
     private function encodeField($field)
     {
         return str_replace('.', ':', $field);
-    }
-
-    private function decodeField($field)
-    {
-        return str_replace(':', '.', $field);
     }
 }
