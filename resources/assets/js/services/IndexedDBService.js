@@ -1,3 +1,5 @@
+import GridPagination from "../entities/GridPagination";
+
 export default class IndexedDBService {
     /**
      * @param {$window} $window
@@ -55,22 +57,37 @@ export default class IndexedDBService {
                 request.onerror = event => {
                     reject(event);
                 };
-            });
+            }).catch(e => reject(e));
         })
     }
 
     /**
-     * Конфиг грида
+     * Сохранение данных грида
      *
-     * @param {String} grid
-     * @param {Object} data
+     * @param {GridDataProvider} provider
+     * @returns {Promise}
      */
-    storeConfig(grid, data) {
+    storeConfig(provider) {
+        let data = {
+            extended_search: provider.extended_search,
+            sorting: {
+                field: provider.sorting.field,
+                dir: provider.sorting.dir,
+            },
+            pagination: {
+                page: provider.pagination.page,
+                items_per_page: provider.pagination.items_per_page
+            },
+            search: provider.search,
+            hider: provider.columns,
+            show_mode: provider.show_mode
+        };
+
         return this.q((resolve, reject) => {
             this.connect().then(db => {
                 let transaction = db.transaction(['grids'], 'readwrite');
                 let request = transaction.objectStore('grids');
-                let configRequest = request.get(grid);
+                let configRequest = request.get(provider.name);
 
                 configRequest.onsuccess = event => {
                     for (let item in data) {
@@ -88,7 +105,7 @@ export default class IndexedDBService {
                             }
                         }
                     }
-                    request.put({name: grid, data: data});
+                    request.put({name: provider.name, data: data});
                     resolve(event.target.result);
                 };
 
@@ -96,6 +113,65 @@ export default class IndexedDBService {
                     request.add(data);
                     reject(event);
                 };
+            });
+        });
+    }
+
+    /**
+     * Загрузка конфига в провайдер
+     *
+     * @param {GridDataProvider} provider
+     */
+    loadConfig(provider) {
+        return this.q((resolve, reject) => {
+            this.gridConfig(provider.name).then(config => {
+
+                if (! config) {
+                    resolve();
+                    return true;
+                }
+
+                provider.timeout(() => {
+                    if (config.data.extended_search) {
+                        provider.extended_search = config.data.extended_search;
+                    }
+
+                    if (config.data.sorting) {
+                        provider.sorting = config.data.sorting;
+                    }
+
+                    if (config.data.pagination) {
+                        provider.pagination = new GridPagination(
+                            config.data.pagination.items_per_page,
+                            config.data.pagination.page,
+                            config.data.pagination.items_per_page * config.data.pagination.page
+                        );
+                    }
+
+                    if (config.data.search) {
+                        provider.search = config.data.search;
+                    }
+
+                    if (config.data.hider) {
+                        provider.columns.forEach(column => {
+                            config.data.hider.forEach(stored_column => {
+                                if (stored_column.field != column.field) {
+                                    return true;
+                                }
+
+                                column.selected = stored_column.selected;
+                            })
+                        });
+                    }
+
+                    if (! provider.show_mode && config.data.show_mode) {
+                        provider.show_mode = config.data.show_mode;
+                    }
+
+                    resolve();
+                });
+
+                return true;
             });
         });
     }

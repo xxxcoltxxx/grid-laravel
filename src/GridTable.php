@@ -271,6 +271,8 @@ class GridTable
     public function response($type)
     {
         switch ($type) {
+            case 'tree':
+                return $this->data_provider->tree();
             case 'config':
                 return [
                     'name' => $this->data_provider->getName(),

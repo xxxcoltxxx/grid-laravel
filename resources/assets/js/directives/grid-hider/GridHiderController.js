@@ -14,13 +14,13 @@ export default class GridHiderController {
      */
     toggle(column) {
         column.selected = ! column.selected;
-        this.provider.columnsClasses();
+        this.provider.updateColumnClasses();
     }
 
     resetToDefaults() {
         this.timeout(() => {
             this.provider.columns.forEach(column => column.selected = ! column.default_hidden);
-            this.provider.columnsClasses();
+            this.provider.updateColumnClasses();
         });
     }
 }

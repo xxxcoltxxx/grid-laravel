@@ -13,7 +13,9 @@ export default class GridFilterSelectDirective extends GridFilter {
             value: '@',
             placeholder: '@',
             multiple: '<',
-            valuesText: '<'
+            valuesText: '@',
+            hideResetButton: '<',
+            hideLiveSearch: '<',
         };
 
         this.controller = GridFilterSelectController;
@@ -27,13 +29,13 @@ export default class GridFilterSelectDirective extends GridFilter {
                         <span class="grid-select__title">{{ selectCtrl.displayLabel() }}</span>
                         <span class="grid-select__caret"><i class="caret"></i></span>
                     </div>
-                    <div class="grid-label__clear" ng-click="selectCtrl.resetToDefaults()">
+                    <div class="grid-label__clear" ng-click="selectCtrl.resetToDefaults()" ng-if="! selectCtrl.hideResetButton">
                         <i class="fa fa-remove"></i>
                     </div>
                 </div>
                 
                 <div outside-click="selectCtrl.closeList()" class="grid-select__list-container ng-hide" ng-show="selectCtrl.is_open">
-                    <div class="grid-select__searchbox">
+                    <div class="grid-select__searchbox" ng-if="! selectCtrl.hideLiveSearch">
                         <input type="text" ng-model="selectCtrl.search" ng-change="filter()" class="grid-select__searchbox-input" focus-me="selectCtrl.is_open" />
                         <span class="grid-label__clear" ng-click="selectCtrl.clearFilter()"><i class="fa fa-remove"></i></span>
                     </div>
