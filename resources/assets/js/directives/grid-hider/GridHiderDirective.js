@@ -10,7 +10,7 @@ export default class GridHiderDirective {
         this.bindToController = true;
         this.template = `
             <span data-auto-close="outsideClick" dropdown-append-to-body uib-dropdown>
-                <a class="btn btn-white btn-sm grid-btn" id="grid-hider" uib-dropdown-toggle uib-tooltip="{{ $root.lang('grid.column-hider') }}" tooltip-placement="top-right">
+                <a class="btn btn-white btn-sm grid-btn" id="grid-hider" uib-dropdown-toggle uib-tooltip="{{:: $root.lang('grid.column-hider') }}" tooltip-placement="top-right">
                     <i class="fa fa-cog"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="grid-hider" uib-dropdown-menu>

@@ -33,6 +33,25 @@ export default class GridDataProvider {
         this.init();
     }
 
+    csv() {
+        let params = {
+            type: 'csv',
+            search: JSON.stringify(this.search),
+            column_names: JSON.stringify(this.column_names),
+            headers: JSON.stringify(this.headers),
+            sorting: JSON.stringify(this.sorting),
+        };
+
+        location.href = `${this.url}?${this.encodeQueryData(params)}`;
+    }
+
+    encodeQueryData(data) {
+        let ret = [];
+        for (let d in data)
+            ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+        return ret.join('&');
+    }
+
 
     /**
      * Переключение состояния отображения фильтров колонок

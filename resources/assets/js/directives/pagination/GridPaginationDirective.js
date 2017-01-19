@@ -25,7 +25,7 @@ export default class GridPaginationDirective {
                     </ul>
                 </span>
             </div>
-            
+
             <div class="col-lg-8 text-center">
                 <ul uib-pagination
                     ng-show="num_pages > 1"
@@ -39,7 +39,7 @@ export default class GridPaginationDirective {
                     next-text="&rsaquo;">
                 </ul>
             </div>
-            
+
             <div class="col-lg-2 pagination text-right">
                 <span ng-if="num_pages > 1">
                     {{ gridPaginationCtrl.provider.pagination.page }} / {{ num_pages }}

@@ -32,18 +32,20 @@ export default class GridFilterSelectDirective extends GridFilter {
                     <div class="grid-label__clear" ng-click="selectCtrl.resetToDefaults()" ng-if="! selectCtrl.hideResetButton">
                         <i class="fa fa-remove"></i>
                     </div>
-                </div>
                 
-                <div outside-click="selectCtrl.closeList()" class="grid-select__list-container ng-hide" ng-show="selectCtrl.is_open">
-                    <div class="grid-select__searchbox" ng-if="! selectCtrl.hideLiveSearch">
-                        <input type="text" ng-model="selectCtrl.search" ng-change="filter()" class="grid-select__searchbox-input" focus-me="selectCtrl.is_open" />
-                        <span class="grid-label__clear" ng-click="selectCtrl.clearFilter()"><i class="fa fa-remove"></i></span>
-                    </div>
-                    
-                    <div when-scroll-ends="selectCtrl.scrolling()" class="grid-select__list">
-                        <div class="grid-select__list-item" ng-click="selectCtrl.toggle(item)" ng-repeat="item in selectCtrl.items | filter: selectCtrl.search | limitTo: selectCtrl.filter_limit">
-                            <i class="fa fa-check grid-select__list-item-check" ng-class="{'invisible': ! selectCtrl.selected(item)}"></i>
-                            <span class="grid-select__list-item-value">{{:: item[selectCtrl.value] }}</span>
+                    <div auto-position=".grid-select__label-container" ng-if="selectCtrl.is_open">
+                        <div outside-click="selectCtrl.closeList()" class="grid-select__list-container ng-hide" ng-show="selectCtrl.is_open">
+                            <div class="grid-select__searchbox" ng-if="! selectCtrl.hideLiveSearch">
+                                <input type="text" ng-model="selectCtrl.search" ng-change="filter()" class="grid-select__searchbox-input" focus-me="selectCtrl.is_open" />
+                                <span class="grid-label__clear" ng-click="selectCtrl.clearFilter()"><i class="fa fa-remove"></i></span>
+                            </div>
+                            
+                            <div when-scroll-ends="selectCtrl.scrolling()" class="grid-select__list">
+                                <div class="grid-select__list-item" ng-click="selectCtrl.toggle(item)" ng-repeat="item in selectCtrl.items | filter: selectCtrl.search | limitTo: selectCtrl.filter_limit">
+                                    <i class="fa fa-check grid-select__list-item-check" ng-class="{'invisible': ! selectCtrl.selected(item)}"></i>
+                                    <span class="grid-select__list-item-value">{{:: item[selectCtrl.value] }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
