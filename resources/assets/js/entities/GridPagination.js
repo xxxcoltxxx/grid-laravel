@@ -5,7 +5,7 @@ export default class GridPagination {
      * @param {Array.<Number>} variants
      * @param {number} items_per_page
      */
-    constructor(items_per_page, page, total, variants = [10, 25, 50, 1, 2]) {
+    constructor(items_per_page, page, total, variants = [10, 25, 50]) {
         this.fill(items_per_page, page, total, variants);
     }
 
