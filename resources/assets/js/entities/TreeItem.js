@@ -1,10 +1,9 @@
 export default class TreeItem {
-    constructor(id, parent_id, level, expanded = false) {
+    constructor(id, parent_id, is_allowed = false) {
         this.id = id;
         this.parent_id = parent_id;
-        this.level = level;
-        this.expanded = expanded;
-        this.is_hidden = true;
+        this.expanded = false;
+        this.is_allowed = is_allowed;
 
         this.parents = [parent_id];
         /**
@@ -13,17 +12,35 @@ export default class TreeItem {
         this.children = [];
 
         this.item = null;
-        this.parent_allowed = true;
     }
 
     get uniqueKey() {
         return this.item ? this.item.version_key : this.id;
     }
 
+    set has_allowed_parents(value) {
+        this._has_allowed_parents = value;
+
+        if (! this.is_allowed) {
+            this.is_hidden = true;
+        } else if (this.parent_id) {
+            this.is_hidden = !! this.has_allowed_parents;
+        } else {
+            this.is_hidden = false;
+        }
+    }
+
+    get has_allowed_parents() {
+        return this._has_allowed_parents;
+    }
+
     addChildren(items = []) {
         items.forEach(item => {
             this.children.push(item);
         });
+
+        this.has_children = this.hasChildren();
+        this.has_allowed_children = this.hasAllowedChildren();
     }
 
     hasChildren() {
@@ -39,7 +56,7 @@ export default class TreeItem {
         let allowed = false;
 
         this.children.forEach(item => {
-            if (item.item || item.hasAllowedChildren()) {
+            if (item.is_allowed || item.hasAllowedChildren()) {
                 allowed = true;
 
                 return false;

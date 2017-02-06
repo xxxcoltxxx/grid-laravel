@@ -29,6 +29,27 @@
 
       td {
         vertical-align: middle !important;
+
+
+        &.full-button {
+          padding: 0;
+
+          button {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            padding: 12px 0;
+            outline: none;
+
+            &[disabled] {
+              color: #888888;
+              cursor: default;
+            }
+          }
+        }
       }
     }
   }
@@ -207,4 +228,15 @@
       border-left: none;
     }
   }
+}
+
+.animate-on-create td {
+  animation: colorchange 2s;
+  background-color: #ffffff;
+}
+
+@keyframes colorchange
+{
+  0%   {background: #d9edf7;}
+  100% {background: white;}
 }

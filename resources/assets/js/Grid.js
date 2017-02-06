@@ -12,6 +12,9 @@ import GridFilterSelectDirective from "./directives/filters/grid-filter-select/G
 import GridFilterDateRangeDirective from "./directives/filters/grid-filter-date-range/GridFilterDateRangeDirective";
 import GridFilterMultiSelectDirective from "./directives/filters/grid-filter-multi-select/GridFilterMultiSelectDirective";
 import GridCsvDirective from "./directives/grid-csv/GridCsvDirective";
+import GridCollapseButtonDirective from "./directives/grid-collapse-button/GridCollapseButtonDirective";
+import GridTreeUpButtonDirective from "./directives/grid-tree-up-button/GridTreeUpButtonDirective";
+import GridTreeDownButtonDirective from "./directives/grid-tree-down-button/GridTreeDownButtonDirective";
 
 angular
     .module('Grid', [])
@@ -28,5 +31,8 @@ angular
     .directive('gridFilterSelect', () => new GridFilterSelectDirective())
     .directive('gridFilterMultiSelect', () => new GridFilterMultiSelectDirective())
     .directive('gridFilterDateRange', () => new GridFilterDateRangeDirective())
+    .directive('gridCollapseButton', () => new GridCollapseButtonDirective())
+    .directive('gridTreeUpButton', () => new GridTreeUpButtonDirective())
+    .directive('gridTreeDownButton', () => new GridTreeDownButtonDirective())
 
 ;

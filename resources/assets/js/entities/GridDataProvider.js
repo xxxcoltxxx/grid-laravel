@@ -5,6 +5,8 @@ import Tree from "./Tree";
 
 export const MODE_LIST = 1;
 export const MODE_TREE = 2;
+export const LIMIT_VISIBLE = 50;
+export const LIMIT_LOADING = 25;
 
 export default class GridDataProvider {
 
@@ -29,8 +31,16 @@ export default class GridDataProvider {
          */
         this.url = url;
         this.root = {id: null};
+        this.constants = {
+            LIMIT_VISIBLE,
+            LIMIT_LOADING
+        };
 
         this.init();
+    }
+
+    set container_selector(value) {
+        this.selector = '#' + value + '-container';
     }
 
     csv() {
@@ -134,7 +144,9 @@ export default class GridDataProvider {
                 console.debug('Загрузка дерева...');
                 return this.loadTree().then(() => {
                     console.debug('Загрузка данных для дерева...');
-                    this.tree.loadTreeData().then(() => this.loaded = true);
+                    this.tree.moveTree().then(() => {
+                        this.loaded = true;
+                    });
                 });
             }
 
