@@ -7,7 +7,9 @@ import Column from "../../entities/Column";
  */
 export default class GridColumnController {
     constructor() {
-        this.provider.columns.push(new Column(this.field, this.title, !! this.defaultHidden));
+        if (! this.provider.columns.find(column => column.field == this.field)) {
+            this.provider.columns.push(new Column(this.field, this.title, !!this.defaultHidden));
+        }
     }
 
     sort() {

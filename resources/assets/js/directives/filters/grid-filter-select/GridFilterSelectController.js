@@ -94,7 +94,6 @@ export default class GridFilterSelectController {
             this.provider.search[this.field] = null;
         }
 
-
         this.provider.load();
     }
 

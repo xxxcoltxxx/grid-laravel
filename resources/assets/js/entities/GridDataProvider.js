@@ -5,8 +5,9 @@ import Tree from "./Tree";
 
 export const MODE_LIST = 1;
 export const MODE_TREE = 2;
-export const LIMIT_VISIBLE = 50;
-export const LIMIT_LOADING = 25;
+const DEFAULT_LIMIT_VISIBLE = 50;
+const DEFAULT_LIMIT_LOADING = 25;
+const DEFAULT_GRID_NAME = 'Grid';
 
 export default class GridDataProvider {
 
@@ -32,15 +33,21 @@ export default class GridDataProvider {
         this.url = url;
         this.root = {id: null};
         this.constants = {
-            LIMIT_VISIBLE,
-            LIMIT_LOADING
+            LIMIT_VISIBLE: DEFAULT_LIMIT_VISIBLE,
+            LIMIT_LOADING: DEFAULT_LIMIT_LOADING
         };
+        this.loading_promise = null;
+        this.loading_timeout = null;
 
         this.init();
     }
 
     set container_selector(value) {
         this.selector = '#' + value + '-container';
+    }
+
+    get container() {
+        return $(this.selector);
     }
 
     csv() {
@@ -100,10 +107,18 @@ export default class GridDataProvider {
                 .get(this.url, {params: {type: 'config'}})
                 .then(response => {
                     this.default_filters = response.data.default_filters;
-                    this.name = `${response.data.name}${this.name}`;
-                    this.timeout(() => {
-                        angular.copy(this.default_filters, this.search);
-                    });
+                    this.name = `${response.data.name}${DEFAULT_GRID_NAME}`;
+
+                    let limits = response.data.limits;
+                    if (limits.LIMIT_VISIBLE) {
+                        this.constants.LIMIT_VISIBLE = limits.LIMIT_VISIBLE;
+                    }
+
+                    if (limits.LIMIT_LOADING) {
+                        this.constants.LIMIT_LOADING = limits.LIMIT_LOADING;
+                    }
+
+                    this.timeout(() => angular.copy(this.default_filters, this.search));
 
                     return true;
                 })
@@ -130,7 +145,7 @@ export default class GridDataProvider {
      *
      * @returns {Promise}
      */
-    load() {
+    load(fetch_data = true) {
         this.loaded = false;
 
         if (! this.show_mode) {
@@ -142,45 +157,68 @@ export default class GridDataProvider {
             if (this.show_mode == MODE_TREE) {
 
                 console.debug('Загрузка дерева...');
-                return this.loadTree().then(() => {
+                return this.loadTree(fetch_data).then(() => {
                     console.debug('Загрузка данных для дерева...');
-                    this.tree.moveTree().then(() => {
+                    if (! fetch_data) {
+                        this.loaded = true;
+                        return true;
+                    }
+
+                    return this.tree.moveTree().then(() => {
                         this.loaded = true;
                     });
                 });
             }
 
             console.debug('Загрузка строк...');
-            return this.http
-                .get(this.url, {params: {
-                    type: 'json',
-                    sorting: {
-                        field: this.sorting.field,
-                        dir: this.sorting.dir,
-                    },
-                    pagination: {
-                        current_page: this.pagination.page,
-                        items_per_page: this.pagination.items_per_page
-                    },
-                    search: this.search
-                }})
-                .then(response => {
-                    this.timeout(() => {
-                        this.loaded = true;
-                        this.items = response.data.items;
 
-                        let { page, limit, total } = response.data.pagination;
-                        if (this.pagination instanceof GridPagination) {
-                            this.pagination.fill(limit, page, total);
-                        } else {
-                            this.pagination = new GridPagination(limit, page, total);
-                        }
+            if (this.loading_promise) {
+                this.loading_promise.resolve();
+            }
+            if (this.loading_timeout) {
+                this.timeout.cancel(this.loading_timeout);
+            }
 
-                        let { field, dir } = response.data.sorting;
-                        this.sorting = new GridSorting(field, dir);
-                        console.debug('Готово');
-                    });
-                });
+            this.loading_promise = this.q.defer();
+
+            return this.q(resolve => {
+                this.loading_timeout = this.timeout(() => {
+                    this.http
+                        .get(this.url, {
+                            timeout: this.loading_promise.promise, params: {
+                                type: 'json',
+                                sorting: {
+                                    field: this.sorting.field,
+                                    dir: this.sorting.dir,
+                                },
+                                pagination: {
+                                    current_page: this.pagination.page,
+                                    items_per_page: this.pagination.items_per_page
+                                },
+                                search: this.search
+                            }
+                        })
+                        .then(response => {
+                            this.timeout(() => {
+                                this.loaded = true;
+                                this.items = response.data.items;
+
+                                let {page, limit, total} = response.data.pagination;
+                                if (this.pagination instanceof GridPagination) {
+                                    this.pagination.fill(limit, page, total);
+                                } else {
+                                    this.pagination = new GridPagination(limit, page, total);
+                                }
+
+                                let {field, dir} = response.data.sorting;
+                                this.sorting = new GridSorting(field, dir);
+                                console.debug('Готово');
+
+                                resolve(response);
+                            });
+                        });
+                }, 300);
+            })
         });
     }
 
@@ -208,8 +246,11 @@ export default class GridDataProvider {
      * Установка режима отображения
      *
      * @param {?number} mode
+     * @param fetch_data
      */
-    setMode(mode = null) {
+    setMode(mode = null, fetch_data = true) {
+        let old_mode = this.show_mode;
+
         if (mode == null) {
             if (this.show_mode == MODE_LIST) {
                 this.show_mode = MODE_TREE;
@@ -220,7 +261,14 @@ export default class GridDataProvider {
             this.show_mode = mode;
         }
 
-        this.load();
+        if (this.show_mode == old_mode) {
+            let q = this.q.defer();
+            q.resolve();
+
+            return q.promise;
+        } else {
+            return this.load(fetch_data);
+        }
     }
 
     /**
@@ -228,9 +276,9 @@ export default class GridDataProvider {
      *
      * @returns {Promise}
      */
-    loadTree() {
+    loadTree(force = false) {
         return this.q(resolve => {
-            if (this.tree !== null) {
+            if (this.tree !== null && ! force) {
                 console.debug('Дерево уже было загружено');
                 resolve();
                 return;
@@ -354,10 +402,16 @@ export default class GridDataProvider {
         };
     }
 
-    run() {
+    run(fetch_data = false) {
         return this.loadConfig().then(response => {
-            this.load();
+            if (fetch_data) {
+                fetch_data = fetch_data();
+            } else {
+                fetch_data = true;
+            }
+            let load = this.load(fetch_data);
             this.updateColumnClasses();
+            return load;
         });
     }
 }

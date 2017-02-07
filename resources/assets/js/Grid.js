@@ -15,6 +15,8 @@ import GridCsvDirective from "./directives/grid-csv/GridCsvDirective";
 import GridCollapseButtonDirective from "./directives/grid-collapse-button/GridCollapseButtonDirective";
 import GridTreeUpButtonDirective from "./directives/grid-tree-up-button/GridTreeUpButtonDirective";
 import GridTreeDownButtonDirective from "./directives/grid-tree-down-button/GridTreeDownButtonDirective";
+import GridTreeFilterAllDirective from "./directives/filters/grid-tree-filter-all/GridTreeFilterAllDirective";
+import GridFooterDirective from "./directives/grid-footer/GridFooterDirective";
 
 angular
     .module('Grid', [])
@@ -23,10 +25,12 @@ angular
     .service('GridService', GridService)
 
     .directive('gridPagination', () => new GridPaginationDirective())
+    .directive('gridFooter', () => new GridFooterDirective())
     .directive('gridColumn', () => new GridColumnDirective())
     .directive('gridHider', () => new GridHiderDirective())
     .directive('gridCsv', () => new GridCsvDirective())
     .directive('gridFilterAll', () => new GridFilterAllDirective())
+    .directive('gridTreeFilterAll', () => new GridTreeFilterAllDirective())
     .directive('gridFilterText', () => new GridFilterTextDirective())
     .directive('gridFilterSelect', () => new GridFilterSelectDirective())
     .directive('gridFilterMultiSelect', () => new GridFilterMultiSelectDirective())
