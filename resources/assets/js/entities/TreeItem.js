@@ -23,11 +23,17 @@ export default class TreeItem {
 
         if (! this.is_allowed) {
             this.is_hidden = true;
+        } else if (this.isRoot()) {
+            this.is_hidden = false;
         } else if (this.parent_id) {
             this.is_hidden = !! this.has_allowed_parents;
         } else {
             this.is_hidden = false;
         }
+    }
+
+    isRoot() {
+        return ! this.parent_id || this.level == 1;
     }
 
     get has_allowed_parents() {

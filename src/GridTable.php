@@ -26,9 +26,10 @@ class GridTable
     public function __construct(GridDataProvider $data_provider)
     {
         $this->data_provider = $data_provider;
+        $data_provider->grid_table = $this;
     }
 
-    protected function buildQuery($searches, $prefix = '')
+    public function buildQuery($searches, $prefix = '')
     {
         if (!is_array($searches)) {
             return;
@@ -62,7 +63,7 @@ class GridTable
         }
     }
 
-    private function getRequestData($key, $default = null, $access_string = null)
+    public function getRequestData($key, $default = null, $access_string = null)
     {
         $this->request = $this->request ?: app(Request::class);
         $data = json_decode($this->request->input($key), true);
@@ -273,6 +274,8 @@ class GridTable
         switch ($type) {
             case 'tree':
                 return $this->data_provider->tree();
+            case 'tree_filter':
+                return $this->data_provider->treeFilter();
             case 'config':
                 return [
                     'name' => $this->data_provider->getName(),

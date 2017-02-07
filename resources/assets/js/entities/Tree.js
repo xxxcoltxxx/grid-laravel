@@ -17,6 +17,9 @@ export default class Tree {
         this.url = this.provider.url;
         this.last_from_index = 0;
         this.is_loading = false;
+        this.loading_promise = null;
+        this.search_results = [];
+        this.resetCurrentSearch();
 
         /**
          * Массив всех итемов дерева
@@ -49,15 +52,8 @@ export default class Tree {
          */
         this.all_expanded = false;
 
-        let time = new Date();
         let tree_items = [];
-        if (parent.id) {
-            console.log(parent);
-        }
         items.forEach(item => {
-            if (parent.id) {
-                console.log(item);
-            }
             if (parent.id) {
                 if (item.id == parent.id) {
                     return;
@@ -67,16 +63,12 @@ export default class Tree {
                 }
             }
             let tree_item = new TreeItem(item.id, item.parent_id, item.allowed);
-            if (parent.id) {
-                console.log(tree_item);
-            }
             tree_items.push(tree_item);
             this.pushTreeIndexes(tree_item)
         });
 
         this.buildChildren();
         this.buildVisibleIndex();
-        console.log(`build time: ${(new Date()).getTime() - time.getTime()} ms`);
     }
 
     /**
@@ -139,11 +131,11 @@ export default class Tree {
     /**
      * Проверка, доступен ли родительский итем
      *
-     * @param item
+     * @param {TreeItem} item
      * @returns {boolean}
      */
     hasAllowedParents(item) {
-        if (! item.parent_id) {
+        if (item.isRoot()) {
             return item.is_allowed;
         }
 
@@ -161,6 +153,108 @@ export default class Tree {
     }
 
     /**
+     * Находит id итемов, удовлетворяющих фильтрам грида
+     */
+    search() {
+        if (! this.provider.search.all) {
+            this.resetSearch();
+
+            return true;
+        }
+
+        if (this.loading_promise) {
+            this.loading_promise.resolve();
+        }
+
+        let params = {
+            type: 'tree_filter',
+            search: {all: this.provider.search.all}
+        };
+
+        console.debug('Загрузка данных для дерева ', params);
+
+        this.is_loading = true;
+
+        this.loading_promise = this.q.defer();
+
+        this.http.get(this.url, {timeout: this.loading_promise.promise, params: params})
+            .then(response => {
+                this.timeout(() => this.is_loading = false);
+
+                let index1, index2;
+
+                this.resetCurrentSearch();
+                this.search_results = response.data.sort((id1, id2) => {
+                    index1 = this.items.findIndex(__item => __item.id == id1);
+                    index2 = this.items.findIndex(__item => __item.id == id2);
+
+                    return index1 > index2 ? 1 : -1;
+                });
+
+                this.moveResult(1);
+                this.loading_promise = null;
+                return response;
+            })
+            .catch(() => this.is_loading = false);
+
+        return this.loading_promise;
+    }
+
+    /**
+     * Сбрасывает текущий результат поиска на значения по-умолчанию
+     */
+    resetCurrentSearch() {
+        this.current_search_result = {
+            index: -1,
+            id: null
+        };
+    }
+
+    /**
+     * Очищает результат поиска
+     */
+    resetSearch() {
+        this.timeout(() => {
+            this.search_results = [];
+            this.resetCurrentSearch();
+            this.provider.search.all = '';
+        });
+    }
+
+    /**
+     * Сдвигает результат поиска на delta
+     * @param {number} delta
+     */
+    moveResult(delta) {
+        let index = this.current_search_result.index === -1 ? 0 : this.current_search_result.index + delta;
+        if (index < 0) {
+            index = this.search_results.length - 1;
+        }
+        if (index > this.search_results.length - 1) {
+            index = 0;
+        }
+
+        let item_id = this.search_results[index];
+
+        if (! this.search_results.length || ! item_id) {
+            console.error('Нет результатов поиска');
+            return false;
+        }
+
+        // Ищем этот итем
+        this.current_search_result = {
+            index: index,
+            id: item_id
+        };
+
+        if (! this.current_search_result) {
+            return false;
+        }
+
+        return this.loadItemById(item_id);
+    }
+
+    /**
      * Возвращает итем по его id
      *
      * @param id
@@ -170,8 +264,95 @@ export default class Tree {
         return this.indexes.id[id];
     }
 
+    loadItemById(item_id) {
+        let search_item = this.items.find(item => item.id == item_id);
+
+        if (! search_item) {
+            console.error('Не найден id ' + item_id);
+            return false;
+        }
+
+        // Раскрываем все родительские итемы
+        this.expandItemWithParents(search_item);
+
+        // Пересчитываем индекс видимых элементов
+        this.buildVisibleIndex();
+
+        // Вычисляем from_index
+        let visible_index = this.indexes.visible.findIndex(item => item.id == item_id);
+        let from_index = visible_index - Math.floor(LIMIT_VISIBLE / 2);
+
+        // Получаем массив идентификаторов для загрузки
+        let identifiers = this.identifiersRange(from_index);
+
+        // Получаем item_id, которые нужно запросить с сервера
+        let identifiers_to_load = this.filterByNotLoaded(identifiers);
+
+        // Загружаем часто дерева с результатами
+        return this.loadItems(identifiers_to_load)
+            .then(response => {
+                let item, tree_item;
+
+                this.rows = [];
+                identifiers.forEach(id => {
+                    tree_item = this.getTreeItem(id);
+
+                    if (! tree_item.item) {
+                        item = response.data.items.find(loaded_item => loaded_item.id == id);
+
+                        if (!item || !tree_item) {
+                            return true;
+                        }
+
+                        tree_item.item = item;
+                    }
+
+                    this.rows.push(tree_item);
+                });
+
+
+                // Подсвечиваем найденные результаты
+
+                // Прокручиваем так, чтобы результат был посередине
+                this.timeout(() => {
+                    let container = this.provider.container;
+                    let row = container.find('tr[data-id=' + item_id + ']');
+                    if (container.length && row.length) {
+                        container[0].scrollTop = row.position().top - (container.height() / 2 - row.height() / 2);
+                    }
+                });
+            });
+    }
+
     /**
-     * Подгружает дерево в конец грида
+     * Загружает результат поиска по его id
+     *
+     * @param item_id
+     * @returns {*}
+     */
+    loadSearchResult(item_id) {
+
+        this.loadItemById(item_id);
+    }
+
+    /**
+     * Раскрывает итем вместе со всеми родителями рекурсивно
+     *
+     * @param {TreeItem} item
+     */
+    expandItemWithParents(item) {
+        let parent = this.getTreeItem(item.parent_id);
+        let saver = 0;
+
+        while (parent && saver < 100) {
+            parent.toggleExpanded(true);
+            parent = this.getTreeItem(parent.parent_id);
+            saver++;
+        }
+    }
+
+    /**
+     * Смещает дерево на delta итемов
      *
      * @returns {Promise}
      */
@@ -288,7 +469,6 @@ export default class Tree {
     movedIdentifiers(delta) {
         this.buildVisibleIndex();
 
-        let identifiers = [];
         let from_index = 0;
 
         if (this.rows.length) {
@@ -300,6 +480,17 @@ export default class Tree {
         } else {
             from_index = from_index + delta;
         }
+
+        return this.identifiersRange(from_index);
+    }
+
+    /**
+     * Возвращает массив id, который должен отображаться, если первый отображаемый итем = from_index
+     * @param from_index
+     * @returns {Array.<number>}
+     */
+    identifiersRange(from_index) {
+        let identifiers = [];
 
         from_index = Math.min(from_index, this.indexes.visible.length - LIMIT_VISIBLE);
         from_index = Math.max(0, from_index);
@@ -414,7 +605,7 @@ export default class Tree {
         this.items.forEach(item => {
             if (item.is_allowed) {
                 item.expanded = false;
-                item.is_hidden = item.level != 1;
+                item.is_hidden = ! item.isRoot();
             }
         });
 
@@ -433,7 +624,7 @@ export default class Tree {
         this.load_buttons = {
             up: {
                 disabled: this.is_loading || ! this.last_from_index,
-                visible: this.last_from_index < this.indexes.visible.length - LIMIT_VISIBLE - 1
+                visible: this.indexes.visible.length - LIMIT_VISIBLE > 0
             },
             down: {
                 disabled: this.is_loading,

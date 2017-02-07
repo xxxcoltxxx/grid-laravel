@@ -2,7 +2,7 @@ import GridDataProvider from "../entities/GridDataProvider";
 
 /**
  * @property {Object} grids
- * @property {GridDataProvider} grids.grid
+ * @property {Object.<string, GridDataProvider>} grids
  */
 export default class GridService {
     /**
