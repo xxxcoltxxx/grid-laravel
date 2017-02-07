@@ -17,6 +17,11 @@ abstract class GridDataProvider
     public $sorting_resolve;
     public $csv_template = null;
 
+    /**
+     * @var null|GridTable
+     */
+    public $grid_table = null;
+
     private $query;
     private $pagination;
     private $filters;
@@ -332,5 +337,33 @@ abstract class GridDataProvider
     final public function getName()
     {
         return $this->name;
+    }
+
+    final protected function buildQuery()
+    {
+        $searches = $this->grid_table->getRequestData('search');
+        $this->grid_table->buildQuery($searches);
+    }
+
+
+    /**
+     * Возвращает массив маппинга для построения дерева (ключи id, parent_id, allowed)
+     *
+     * @return array
+     */
+    public function tree()
+    {
+        return [];
+    }
+
+
+    /**
+     * Возвращает массив id, которые подходят под результаты поиска
+     *
+     * @return array
+     */
+    public function treeFilter()
+    {
+        return [];
     }
 }

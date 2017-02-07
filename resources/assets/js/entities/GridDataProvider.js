@@ -43,6 +43,10 @@ export default class GridDataProvider {
         this.selector = '#' + value + '-container';
     }
 
+    get container() {
+        return $(this.selector);
+    }
+
     csv() {
         let params = {
             type: 'csv',
@@ -130,7 +134,7 @@ export default class GridDataProvider {
      *
      * @returns {Promise}
      */
-    load() {
+    load(fetch_data = true) {
         this.loaded = false;
 
         if (! this.show_mode) {
@@ -144,7 +148,12 @@ export default class GridDataProvider {
                 console.debug('Загрузка дерева...');
                 return this.loadTree().then(() => {
                     console.debug('Загрузка данных для дерева...');
-                    this.tree.moveTree().then(() => {
+                    if (! fetch_data) {
+                        this.loaded = true;
+                        return true;
+                    }
+
+                    return this.tree.moveTree().then(() => {
                         this.loaded = true;
                     });
                 });
@@ -208,8 +217,11 @@ export default class GridDataProvider {
      * Установка режима отображения
      *
      * @param {?number} mode
+     * @param fetch_data
      */
-    setMode(mode = null) {
+    setMode(mode = null, fetch_data = true) {
+        let old_mode = this.show_mode;
+
         if (mode == null) {
             if (this.show_mode == MODE_LIST) {
                 this.show_mode = MODE_TREE;
@@ -220,7 +232,14 @@ export default class GridDataProvider {
             this.show_mode = mode;
         }
 
-        this.load();
+        if (this.show_mode == old_mode) {
+            let q = this.q.defer();
+            q.resolve();
+
+            return q.promise;
+        } else {
+            return this.load(fetch_data);
+        }
     }
 
     /**
@@ -354,10 +373,14 @@ export default class GridDataProvider {
         };
     }
 
-    run() {
+    run(fetch_data = false) {
         return this.loadConfig().then(response => {
-            this.load();
+            if (fetch_data) {
+                fetch_data = fetch_data();
+            }
+            let load = this.load(fetch_data);
             this.updateColumnClasses();
+            return load;
         });
     }
 }
