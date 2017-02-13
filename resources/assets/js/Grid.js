@@ -8,6 +8,7 @@ import GridColumnDirective from "./directives/grid-column/GridColumnDirective";
 import GridHiderDirective from "./directives/grid-hider/GridHiderDirective";
 import GridFilterAllDirective from "./directives/filters/grid-filter-all/GridFilterAllDirective";
 import GridFilterTextDirective from "./directives/filters/grid-filter-text/GridFilterTextDirective";
+import GridFilterBooleanDirective from "./directives/filters/grid-filter-bollean/GridFilterBooleanDirective";
 import GridFilterSelectDirective from "./directives/filters/grid-filter-select/GridFilterSelectDirective";
 import GridFilterDateRangeDirective from "./directives/filters/grid-filter-date-range/GridFilterDateRangeDirective";
 import GridFilterMultiSelectDirective from "./directives/filters/grid-filter-multi-select/GridFilterMultiSelectDirective";
@@ -32,6 +33,7 @@ angular
     .directive('gridFilterAll', () => new GridFilterAllDirective())
     .directive('gridTreeFilterAll', () => new GridTreeFilterAllDirective())
     .directive('gridFilterText', () => new GridFilterTextDirective())
+    .directive('gridFilterBoolean', () => new GridFilterBooleanDirective())
     .directive('gridFilterSelect', () => new GridFilterSelectDirective())
     .directive('gridFilterMultiSelect', () => new GridFilterMultiSelectDirective())
     .directive('gridFilterDateRange', () => new GridFilterDateRangeDirective())
@@ -39,4 +41,8 @@ angular
     .directive('gridTreeUpButton', () => new GridTreeUpButtonDirective())
     .directive('gridTreeDownButton', () => new GridTreeDownButtonDirective())
 
+    .constant('gridBooleanConfig', {
+        yes: '&#10003;',
+        no:  '&#8722;'
+    })
 ;
