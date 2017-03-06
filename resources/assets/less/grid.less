@@ -2,7 +2,7 @@
 
 .grid {
   .column-loop (@i) when (@i > 0) {
-    .column-hide-@{i} tr td:nth-child(@{i}), .column-hide-@{i} tr th:nth-child(@{i}) {
+    .column-hide-@{i} tr td:nth-child(@{i}):not([colspan]), .column-hide-@{i} tr th:nth-child(@{i}) {
       display: none;
     }
     .column-loop(@i - 1);

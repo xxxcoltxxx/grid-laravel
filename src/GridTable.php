@@ -297,7 +297,7 @@ class GridTable
                     ]
                 ];
             case 'csv':
-                return $this->getCSV($this->data_provider->getName() . ' ' . Carbon::now()->toDateTimeString(), $this->data_provider->csv_template);
+                return $this->getCSV($this->data_provider->getCsvName(), $this->data_provider->csv_template);
             default:
                 throw new \Exception('Wrong type', 400);
         }

@@ -374,6 +374,11 @@ abstract class GridDataProvider
         return $this->name;
     }
 
+    public function getCsvName()
+    {
+        return $this->getName() . ' ' . Carbon::now()->toDateTimeString();
+    }
+
     final protected function buildQuery()
     {
         $searches = $this->grid_table->getRequestData('search');
