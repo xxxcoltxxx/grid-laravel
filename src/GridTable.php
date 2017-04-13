@@ -95,7 +95,7 @@ class GridTable
 
                 if (in_array($cell_name, $this->data_provider->getDates())){
                     if ($item->{$cell_name} && !$item->{$cell_name} instanceof Carbon){
-                        $item->{$cell_name} = \Carbon\Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
+                        $item->{$cell_name} = Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
                     }
                 }
 
@@ -111,7 +111,15 @@ class GridTable
     public function getData($template = null)
     {
         $columns = array_keys($this->getRequestData('column_names', $this->data_provider->getFilters()));
-        $this->addSelectsToDataProvider($columns ?: array_keys($this->data_provider->getFilters()));
+        $columns = $columns ?: array_keys($this->data_provider->getFilters());
+        foreach ($columns as $i => $column) {
+            if (in_array($column, $this->data_provider->hidden_filters)) {
+                unset($columns[$i]);
+            }
+        }
+
+        $columns = array_values($columns);
+        $this->addSelectsToDataProvider($columns);
 
         $searches = $this->getRequestData('search');
         $sorting = $this->getRequestData('sorting', $this->getSorting());

@@ -16,6 +16,7 @@ abstract class GridDataProvider
      */
     public $sorting_resolve;
     public $csv_template = null;
+    public $hidden_filters = [];
 
     /**
      * @var null|GridTable
