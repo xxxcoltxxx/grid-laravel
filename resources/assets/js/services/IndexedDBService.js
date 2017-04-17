@@ -68,20 +68,7 @@ export default class IndexedDBService {
      * @returns {Promise}
      */
     storeConfig(provider) {
-        let data = {
-            extended_search: provider.extended_search,
-            sorting: {
-                field: provider.sorting.field,
-                dir: provider.sorting.dir,
-            },
-            pagination: {
-                page: provider.pagination.page,
-                items_per_page: provider.pagination.items_per_page
-            },
-            search: provider.search,
-            hider: provider.columns,
-            show_mode: provider.show_mode
-        };
+        let data = this.prepare(angular.copy(provider.toStore()));
 
         return this.q((resolve, reject) => {
             this.connect().then(db => {
@@ -90,21 +77,6 @@ export default class IndexedDBService {
                 let configRequest = request.get(provider.name);
 
                 configRequest.onsuccess = event => {
-                    for (let item in data) {
-                        if (data[item] instanceof Object) {
-                            for (let field in data[item]) {
-                                if (
-                                    data[item][field] instanceof Object &&
-                                    data[item][field].hasOwnProperty('startDate') &&
-                                    data[item][field].startDate !== null &&
-                                    ! (data[item][field] instanceof Date)
-                                ) {
-                                    data[item][field].startDate = new Date(data[item][field].startDate);
-                                    data[item][field].endDate = new Date(data[item][field].endDate);
-                                }
-                            }
-                        }
-                    }
                     request.put({name: provider.name, data: data});
                     resolve(event.target.result);
                 };
@@ -115,6 +87,20 @@ export default class IndexedDBService {
                 };
             });
         });
+    }
+
+    prepare(object) {
+        if (object instanceof Object) {
+            Object.keys(object).forEach(key => {
+                if (moment.isMoment(object[key])) {
+                    object[key] = object[key].toDate();
+                } else if (object[key] instanceof Object) {
+                    object[key] = this.prepare(object[key]);
+                }
+            });
+        }
+
+        return object;
     }
 
     /**
@@ -152,10 +138,29 @@ export default class IndexedDBService {
                         provider.search = config.data.search;
                     }
 
+                    if (config.data.fast_filters) {
+                        config.data.fast_filters.forEach(data => {
+                            if (! data || ! data.hasOwnProperty('alias')) {
+                                return;
+                            }
+                            let filter = provider.fast_filters.find(filter => data.alias === filter.alias);
+                            if (filter) {
+                                if (typeof data.checked === 'boolean') {
+                                    filter.checked = data.checked;
+                                }
+
+                                if (Number.isInteger(data.count)) {
+                                    filter.count = data.count;
+                                }
+                            }
+                        });
+                        provider.enableStoreFastFilters();
+                    }
+
                     if (config.data.hider) {
                         provider.columns.forEach(column => {
                             config.data.hider.forEach(stored_column => {
-                                if (stored_column.field != column.field) {
+                                if (stored_column.field !== column.field) {
                                     return true;
                                 }
 

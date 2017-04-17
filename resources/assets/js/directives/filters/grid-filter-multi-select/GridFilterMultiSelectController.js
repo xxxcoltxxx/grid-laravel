@@ -72,7 +72,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
             return this.placeholder;
         }
 
-        if (this.provider.search[this.field].length == 0) {
+        if (this.provider.search[this.field].length === 0) {
             return this.placeholder;
         }
 

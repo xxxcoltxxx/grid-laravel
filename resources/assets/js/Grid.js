@@ -18,6 +18,8 @@ import GridTreeUpButtonDirective from "./directives/grid-tree-up-button/GridTree
 import GridTreeDownButtonDirective from "./directives/grid-tree-down-button/GridTreeDownButtonDirective";
 import GridTreeFilterAllDirective from "./directives/filters/grid-tree-filter-all/GridTreeFilterAllDirective";
 import GridFooterDirective from "./directives/grid-footer/GridFooterDirective";
+import GridFastFiltersButtonsDirective from "./directives/grid-fast-filters-buttons/GridFastFiltersButtonsDirective";
+import GridFastFiltersDropdownDirective from "./directives/grid-fast-filters-dropdown/GridFastFiltersDropdownDirective";
 
 angular
     .module('Grid', [])
@@ -40,6 +42,8 @@ angular
     .directive('gridCollapseButton', () => new GridCollapseButtonDirective())
     .directive('gridTreeUpButton', () => new GridTreeUpButtonDirective())
     .directive('gridTreeDownButton', () => new GridTreeDownButtonDirective())
+    .directive('gridFastFiltersDropdown', () => new GridFastFiltersDropdownDirective())
+    .directive('gridFastFiltersButtons', () => new GridFastFiltersButtonsDirective())
 
     .constant('gridBooleanConfig', {
         yes: '&#10003;',

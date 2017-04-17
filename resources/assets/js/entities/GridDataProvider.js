@@ -2,6 +2,7 @@ import angular from 'angular';
 import GridPagination from "./GridPagination";
 import GridSorting from "./GridSorting";
 import Tree from "./Tree";
+import GridFastFilter from "./GridFastFilter";
 
 export const MODE_LIST = 1;
 export const MODE_TREE = 2;
@@ -9,6 +10,9 @@ const DEFAULT_LIMIT_VISIBLE = 50;
 const DEFAULT_LIMIT_LOADING = 25;
 const DEFAULT_GRID_NAME = 'Grid';
 
+/**
+ * @property {Array.<GridFastFilter>} Массив с быстрыми фильтрами
+ */
 export default class GridDataProvider {
 
     /**
@@ -36,8 +40,11 @@ export default class GridDataProvider {
             LIMIT_VISIBLE: DEFAULT_LIMIT_VISIBLE,
             LIMIT_LOADING: DEFAULT_LIMIT_LOADING
         };
+        this.count_promise = null;
+        this.count_timeout = null;
         this.loading_promise = null;
         this.loading_timeout = null;
+        this.extended_store = {};
 
         this.init();
     }
@@ -107,6 +114,10 @@ export default class GridDataProvider {
                 .get(this.url, {params: {type: 'config'}})
                 .then(response => {
                     this.default_filters = response.data.default_filters;
+                    this.fast_filters = response.data.fast_filters.map(filter => {
+                        let {alias, title, search, default_mode} = filter;
+                        return new GridFastFilter(this, alias, title, search, default_mode);
+                    });
                     this.name = `${response.data.name}${DEFAULT_GRID_NAME}`;
 
                     let limits = response.data.limits;
@@ -140,6 +151,24 @@ export default class GridDataProvider {
         return this.indexedDBService.storeConfig(this);
     }
 
+    toStore() {
+        return {
+            extended_search: this.extended_search,
+            sorting: {
+                field: this.sorting.field,
+                dir: this.sorting.dir,
+            },
+            pagination: {
+                page: this.pagination.page,
+                items_per_page: this.pagination.items_per_page
+            },
+            search: this.search,
+            hider: this.columns,
+            show_mode: this.show_mode,
+            ...this.extended_store
+        };
+    }
+
     /**
      * Загрузка строк грида
      *
@@ -152,9 +181,41 @@ export default class GridDataProvider {
             this.show_mode = MODE_LIST;
         }
 
+        if (this.fast_filters && this.fast_filters.length) {
+
+            if (this.count_promise) {
+                this.count_promise.resolve();
+            }
+            if (this.count_timeout) {
+                this.timeout.cancel(this.count_timeout);
+            }
+
+            this.count_promise = this.q.defer();
+
+            this.count_timeout = this.timeout(() => {
+                this.http.get(this.url, {
+                    timeout: this.count_promise.promise,
+                    params: {type: 'filters_count'}
+                })
+                    .then(response => {
+                        response.data.forEach(data => {
+                            let filter = this.fast_filters.find(filter => filter.alias === data.alias);
+                            if (filter) {
+                                filter.count = data.count;
+                            }
+
+                            if (this.extended_store.fast_filters) {
+                                this.enableStoreFastFilters();
+                                this.cacheGridChanges();
+                            }
+                        });
+                    })
+            }, 300);
+        }
+
         return this.cacheGridChanges().then(config => {
 
-            if (this.show_mode == MODE_TREE) {
+            if (this.show_mode === MODE_TREE) {
 
                 console.debug('Загрузка дерева...');
                 return this.loadTree(fetch_data).then(() => {
@@ -251,8 +312,8 @@ export default class GridDataProvider {
     setMode(mode = null, fetch_data = true) {
         let old_mode = this.show_mode;
 
-        if (mode == null) {
-            if (this.show_mode == MODE_LIST) {
+        if (mode === null) {
+            if (this.show_mode === MODE_LIST) {
                 this.show_mode = MODE_TREE;
             } else {
                 this.show_mode = MODE_LIST;
@@ -261,7 +322,7 @@ export default class GridDataProvider {
             this.show_mode = mode;
         }
 
-        if (this.show_mode == old_mode) {
+        if (this.show_mode === old_mode) {
             let q = this.q.defer();
             q.resolve();
 
@@ -293,6 +354,38 @@ export default class GridDataProvider {
                     resolve();
                 })
         });
+    }
+
+    /**
+     * Применяет быстрый фильтр
+     *
+     * @param {GridFastFilter} filter
+     */
+    applyFastFilter(filter) {
+        this.search = angular.copy(filter.search);
+        this.cacheGridChanges()
+            .then(() => this.load());
+    }
+
+    enableStoreFastFilters() {
+        this.extended_store = {
+            fast_filters: this.fast_filters.map(filter => {
+                let data = {
+                    alias: filter.alias,
+                    checked: filter.visible,
+                };
+
+                if (Number.isInteger(filter.count)) {
+                    data.count = filter.count;
+                }
+
+                return data;
+            })
+        };
+    }
+
+    disableStoreFastFilters() {
+        this.extended_store = {};
     }
 
 

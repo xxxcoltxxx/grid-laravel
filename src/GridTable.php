@@ -5,9 +5,11 @@ namespace Paramonov\Grid;
 
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+
 
 class GridTable
 {
@@ -26,7 +28,7 @@ class GridTable
     public function __construct(GridDataProvider $data_provider)
     {
         $this->data_provider = $data_provider;
-        $data_provider->grid_table = $this;
+        $this->data_provider->grid_table = $this;
     }
 
     public function buildQuery($searches, $prefix = '')
@@ -286,28 +288,31 @@ class GridTable
                 return $this->data_provider->treeFilter();
             case 'config':
                 return [
-                    'name' => $this->data_provider->getName(),
-                    'pagination' => $this->data_provider->getPagination(),
-                    'sorting' => $this->data_provider->getDefaultSorting(),
+                    'name'            => $this->data_provider->getName(),
+                    'pagination'      => $this->data_provider->getPagination(),
+                    'sorting'         => $this->data_provider->getDefaultSorting(),
                     'default_filters' => $this->data_provider->getDefaultFilters(),
-                    'limits' => $this->data_provider->getTreeLimits(),
+                    'fast_filters'    => $this->data_provider->getFastFilters(),
+                    'limits'          => $this->data_provider->getTreeLimits(),
                 ];
+            case 'filters_count':
+                return $this->data_provider->filtersCount();
             case 'json':
                 $data = $this->getData();
 
                 return [
-                    'items' => $data['data'],
-                    'sorting' => $this->getRequestData('sorting', $this->getSorting()),
+                    'items'      => $data['data'],
+                    'sorting'    => $this->getRequestData('sorting', $this->getSorting()),
                     'pagination' => [
                         'total' => $data['total'],
-                        'page' => $page = $this->getRequestData('pagination', 1, 'current_page'),
-                        'limit' => $data['limit']
-                    ]
+                        'page'  => $page = $this->getRequestData('pagination', 1, 'current_page'),
+                        'limit' => $data['limit'],
+                    ],
                 ];
             case 'csv':
                 return $this->getCSV($this->data_provider->getCsvName(), $this->data_provider->csv_template);
             default:
-                throw new \Exception('Wrong type', 400);
+                throw new Exception('Wrong type', 400);
         }
     }
 }

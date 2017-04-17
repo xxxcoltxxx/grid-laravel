@@ -35,6 +35,7 @@ abstract class GridDataProvider
     private $date_format;
     private $dates;
     private $count;
+    private $fast_filters = [];
 
     const LIMIT_VISIBLE = 'LIMIT_VISIBLE';
     const LIMIT_LOADING = 'LIMIT_LOADING';
@@ -331,6 +332,55 @@ abstract class GridDataProvider
         return $filters;
     }
 
+
+    /**
+     * Возвращает список быстрых фильтров или берет их из кеша
+     *
+     * @return GridFastFilter[]
+     */
+    final public function getFastFilters()
+    {
+        if (is_null($this->fast_filters)) {
+            $this->fast_filters = $this->fastFilters();
+        }
+
+        return $this->fastFilters();
+    }
+
+
+    /**
+     * Возвращает список быстрых фильтров
+     *
+     * @return array
+     */
+    protected function fastFilters()
+    {
+        return [];
+    }
+
+
+    /**
+     * Возвращает массив маппинга для построения дерева (ключи id, parent_id, allowed)
+     *
+     * @return array
+     */
+    public function tree()
+    {
+        return [];
+    }
+
+
+    /**
+     * Возвращает массив id, которые подходят под результаты поиска
+     *
+     * @return array
+     */
+    public function treeFilter()
+    {
+        return [];
+    }
+
+
     /**
      * Метод для конвертации полученных из БД данных в данные, которые должны вернуться для грида
      *
@@ -386,25 +436,20 @@ abstract class GridDataProvider
         $this->grid_table->buildQuery($searches);
     }
 
-
-    /**
-     * Возвращает массив маппинга для построения дерева (ключи id, parent_id, allowed)
-     *
-     * @return array
-     */
-    public function tree()
+    public function filtersCount()
     {
-        return [];
-    }
+        $filter_counts = [];
+        foreach ($this->getFastFilters() as $filter) {
+            $data_provider = new static();
+            $grid = new GridTable($data_provider);
+            $grid->buildQuery($filter->search);
 
+            $filter_counts[] = [
+                'alias'  => $filter->alias,
+                'count'  => $data_provider->count(),
+            ];
+        }
 
-    /**
-     * Возвращает массив id, которые подходят под результаты поиска
-     *
-     * @return array
-     */
-    public function treeFilter()
-    {
-        return [];
+        return $filter_counts;
     }
 }
