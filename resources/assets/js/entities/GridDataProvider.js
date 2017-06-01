@@ -102,6 +102,20 @@ export default class GridDataProvider {
         });
     }
 
+    /**
+     * Переключение видимости столбцов
+     * @param field ключ столбца
+     * @param selected состояния видимый/скрытый
+     */
+    toggleColumn(field, selected) {
+        this.columns.forEach((column, i) => {
+            if (column.field == field) {
+                column.selected = selected;
+            }
+        });
+        this.updateColumnClasses();
+    }
+
 
     /**
      * Загрузка конфига грида с сервера
