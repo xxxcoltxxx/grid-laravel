@@ -63,7 +63,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
             return false;
         }
 
-        return !! this.provider.search[this.field].find(model => item[this.uniqueKey] == model);
+        return !! this.provider.search[this.field].find(model => angular.equals(item[this.uniqueKey], model));
     }
 
     displayLabel() {
