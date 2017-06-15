@@ -20,7 +20,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
             this.provider.search[this.field] = [];
         }
 
-        let index = this.provider.search[this.field].findIndex(model => item[this.uniqueKey] == model);
+        let index = this.provider.search[this.field].findIndex(model => angular.equals(item[this.uniqueKey], model));
 
         if (index > -1) {
             this.provider.search[this.field].splice(index, 1);
@@ -32,6 +32,9 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
     }
 
     reorder() {
+        if (! this.reorderOnOpen) {
+            return;
+        }
         this.normalizeField();
 
         this.items.sort((a, b) => {
@@ -82,7 +85,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
 
         let values = [];
         this.provider.search[this.field].forEach(model => {
-            let item = this.items.find(item => item[this.uniqueKey] == model);
+            let item = this.items.find(item => angular.equals(item[this.uniqueKey], model));
             values.push(item[this.value]);
         });
 
