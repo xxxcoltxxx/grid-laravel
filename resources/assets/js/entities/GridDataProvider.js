@@ -45,6 +45,7 @@ export default class GridDataProvider {
         this.loading_promise = null;
         this.loading_timeout = null;
         this.extended_store = {};
+        this.options = {};
 
         this.init();
     }
@@ -147,10 +148,15 @@ export default class GridDataProvider {
 
                     return true;
                 })
-                .then(() => this.indexedDBService.loadConfig(this)
-                    .then(() => resolve())
-                    .catch(() => resolve())
-                )
+                .then(() => {
+
+                     if (this.options.cache === false) {
+                        return true;
+                     }
+
+                return this.indexedDBService.loadConfig(this);
+                })
+                .then(() => resolve())
                 .catch(() => resolve());
         });
     }
