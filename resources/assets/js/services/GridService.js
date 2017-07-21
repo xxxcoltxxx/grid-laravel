@@ -19,9 +19,10 @@ export default class GridService {
         this.grids = {};
     }
 
-    init(url, name = 'grid') {
+    init(url, name = 'grid', options = {}) {
         this.grids[name] = new GridDataProvider(this.indexedDBService, this.q, this.http, this.timeout, url);
         this.grids[name].container_selector = name;
+        this.grids[name].options = options;
     }
 }
 
