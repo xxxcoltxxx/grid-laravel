@@ -440,7 +440,7 @@ abstract class GridDataProvider
     {
         $filter_counts = [];
         foreach ($this->getFastFilters() as $filter) {
-            $data_provider = new static();
+            $data_provider = clone $this;
             $grid = new GridTable($data_provider);
             $grid->buildQuery($filter->search);
 
