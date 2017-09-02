@@ -9,7 +9,7 @@ export default class GridPaginationDirective {
             provider: '<'
         };
         this.template = `
-            <div class="col-lg-2 pagination">
+            <div class="col-xs-2 pagination">
                 <span uib-dropdown>
                     <div class="btn btn-white" id="pagination-dropdown" uib-dropdown-toggle>
                         {{ gridPaginationCtrl.provider.pagination.items_per_page }}
@@ -26,7 +26,7 @@ export default class GridPaginationDirective {
                 </span>
             </div>
 
-            <div class="col-lg-8 text-center">
+            <div class="col-xs-8 text-center">
                 <ul uib-pagination
                     ng-show="num_pages > 1"
                     total-items="gridPaginationCtrl.provider.pagination.total"
@@ -40,7 +40,7 @@ export default class GridPaginationDirective {
                 </ul>
             </div>
 
-            <div class="col-lg-2 pagination text-right">
+            <div class="col-xs-2 pagination text-right">
                 <span ng-if="num_pages > 1">
                     {{ gridPaginationCtrl.provider.pagination.page }} / {{ num_pages }}
                 </span>
