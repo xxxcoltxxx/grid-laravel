@@ -1,8 +1,14 @@
 import GridFilter from "../GridFilter";
 
 export default class GridFilterAllDirective extends GridFilter {
+
     constructor() {
         super();
+
+        this.scope = {
+            ...this.scope,
+            hideExtended: '<'
+        }
 
         this.template = `
             <div class="input-group input-group-sm">
@@ -11,7 +17,7 @@ export default class GridFilterAllDirective extends GridFilter {
                     <span class="btn btn-default" ng-click="provider.resetSearch()">
                         <i class="fa fa-remove"></i>
                     </span>
-                    <span uib-tooltip="{{:: lang('system.form.labels.extended-search') }}" ng-click="provider.toggleExtendedSearch()" class="btn btn-default">
+                    <span ng-if="! hideExtended" uib-tooltip="{{:: lang('system.form.labels.extended-search') }}" ng-click="provider.toggleExtendedSearch()" class="btn btn-default">
                         <i ng-class="{'fa-search-minus' : provider.extended_search, 'fa-search-plus' : ! provider.extended_search }" class="fa "> </i>
                     </span>
                 </span>
