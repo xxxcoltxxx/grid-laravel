@@ -19,4 +19,22 @@ export default class GridColumnController {
         this.provider.sorting.field = this.field;
         this.provider.load();
     }
+
+    filtered() {
+        var value = this.provider.search[this.field];
+
+        if (! value) {
+            return false;
+        }
+
+        if (value instanceof Array) {
+            return value.length;
+        }
+
+        if (typeof value === 'object' && value.hasOwnProperty('startDate')) {
+            return value.startDate;
+        }
+
+        return !! value;
+    }
 }

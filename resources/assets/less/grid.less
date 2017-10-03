@@ -2,7 +2,8 @@
 
 .grid {
   .column-loop (@i) when (@i > 0) {
-    .column-hide-@{i} tr td:nth-child(@{i}):not([colspan]), .column-hide-@{i} tr th:nth-child(@{i}) {
+    .column-hide-@{i} > table > tr > td:nth-child(@{i}):not([colspan]),
+    .column-hide-@{i} > table > tr > th:nth-child(@{i}) {
       display: none;
     }
     .column-loop(@i - 1);
@@ -60,6 +61,21 @@
 
       th[grid-column] {
         text-align: center;
+      }
+
+      .grid-column {
+
+        .grid-column__center {
+          margin: auto;
+          padding-right: 14px;
+        }
+
+        .grid-column__filter {
+          float: right;
+          line-height: 18px;
+          font-size: 14px;
+          color: #337ab7;
+        }
       }
 
 
