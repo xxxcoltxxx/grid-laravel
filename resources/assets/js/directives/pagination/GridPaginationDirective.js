@@ -24,6 +24,9 @@ export default class GridPaginationDirective {
                         </li>
                     </ul>
                 </span>
+                <span class="pagination-counts" ng-if="gridPaginationCtrl.provider.pagination.total">
+                    {{ gridPaginationCtrl.start_number }}-{{ gridPaginationCtrl.end_number }} / {{ gridPaginationCtrl.provider.pagination.total }}
+                </span>
             </div>
 
             <div class="col-xs-8 text-center">
