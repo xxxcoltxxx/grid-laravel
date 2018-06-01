@@ -73,6 +73,7 @@ class GridTable
     private function makeQuery($sorting = null, $limit = null, $page = null)
     {
         if ($sorting) {
+            $sorting = array_merge($this->data_provider->getDefaultSorting(), $sorting);
             $sort_field = isset($this->data_provider->sorting_resolve[$sorting['field']]) ? $this->data_provider->sorting_resolve[$sorting['field']] : $sorting['field'];
             $this->data_provider->getQuery()->orderBy($sort_field, $sorting['dir']);
         }
