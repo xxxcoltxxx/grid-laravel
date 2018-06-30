@@ -5,9 +5,11 @@ namespace Paramonov\Grid;
 
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+
 
 class GridTable
 {
@@ -26,9 +28,10 @@ class GridTable
     public function __construct(GridDataProvider $data_provider)
     {
         $this->data_provider = $data_provider;
+        $this->data_provider->grid_table = $this;
     }
 
-    protected function buildQuery($searches, $prefix = '')
+    public function buildQuery($searches, $prefix = '')
     {
         if (!is_array($searches)) {
             return;
@@ -62,7 +65,7 @@ class GridTable
         }
     }
 
-    private function getRequestData($key, $default = null, $access_string = null)
+    public function getRequestData($key, $default = null, $access_string = null)
     {
         $this->request = $this->request ?: app(Request::class);
         $data = json_decode($this->request->input($key), true);
@@ -94,7 +97,7 @@ class GridTable
 
                 if (in_array($cell_name, $this->data_provider->getDates())){
                     if ($item->{$cell_name} && !$item->{$cell_name} instanceof Carbon){
-                        $item->{$cell_name} = \Carbon\Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
+                        $item->{$cell_name} = Carbon::parse($item->{$cell_name})->format($this->data_provider->getDateFormat());
                     }
                 }
 
@@ -110,7 +113,15 @@ class GridTable
     public function getData($template = null)
     {
         $columns = array_keys($this->getRequestData('column_names', $this->data_provider->getFilters()));
-        $this->addSelectsToDataProvider($columns ?: array_keys($this->data_provider->getFilters()));
+        $columns = $columns ?: array_keys($this->data_provider->getFilters());
+        foreach ($columns as $i => $column) {
+            if (in_array($column, $this->data_provider->hidden_filters)) {
+                unset($columns[$i]);
+            }
+        }
+
+        $columns = array_values($columns);
+        $this->addSelectsToDataProvider($columns);
 
         $searches = $this->getRequestData('search');
         $sorting = $this->getRequestData('sorting', $this->getSorting());
@@ -273,29 +284,35 @@ class GridTable
         switch ($type) {
             case 'tree':
                 return $this->data_provider->tree();
+            case 'tree_filter':
+                return $this->data_provider->treeFilter();
             case 'config':
                 return [
-                    'name' => $this->data_provider->getName(),
-                    'pagination' => $this->data_provider->getPagination(),
-                    'sorting' => $this->data_provider->getDefaultSorting(),
-                    'default_filters' => $this->data_provider->getDefaultFilters()
+                    'name'            => $this->data_provider->getName(),
+                    'pagination'      => $this->data_provider->getPagination(),
+                    'sorting'         => $this->data_provider->getDefaultSorting(),
+                    'default_filters' => $this->data_provider->getDefaultFilters(),
+                    'fast_filters'    => $this->data_provider->getFastFilters(),
+                    'limits'          => $this->data_provider->getTreeLimits(),
                 ];
+            case 'filters_count':
+                return $this->data_provider->filtersCount();
             case 'json':
                 $data = $this->getData();
 
                 return [
-                    'items' => $data['data'],
-                    'sorting' => $this->getRequestData('sorting', $this->getSorting()),
+                    'items'      => $data['data'],
+                    'sorting'    => $this->getRequestData('sorting', $this->getSorting()),
                     'pagination' => [
                         'total' => $data['total'],
-                        'page' => $page = $this->getRequestData('pagination', 1, 'current_page'),
-                        'limit' => $data['limit']
-                    ]
+                        'page'  => $page = $this->getRequestData('pagination', 1, 'current_page'),
+                        'limit' => $data['limit'],
+                    ],
                 ];
             case 'csv':
-                return $this->getCSV($this->data_provider->getName() . ' ' . Carbon::now()->toDateTimeString(), $this->data_provider->csv_template);
+                return $this->getCSV($this->data_provider->getCsvName(), $this->data_provider->csv_template);
             default:
-                throw new \Exception('Wrong type', 400);
+                throw new Exception('Wrong type', 400);
         }
     }
 }

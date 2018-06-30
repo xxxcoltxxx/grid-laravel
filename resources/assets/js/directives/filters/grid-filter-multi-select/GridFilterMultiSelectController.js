@@ -20,7 +20,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
             this.provider.search[this.field] = [];
         }
 
-        let index = this.provider.search[this.field].findIndex(model => item[this.uniqueKey] == model);
+        let index = this.provider.search[this.field].findIndex(model => angular.equals(item[this.uniqueKey], model));
 
         if (index > -1) {
             this.provider.search[this.field].splice(index, 1);
@@ -32,6 +32,9 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
     }
 
     reorder() {
+        if (! this.reorderOnOpen) {
+            return;
+        }
         this.normalizeField();
 
         this.items.sort((a, b) => {
@@ -63,7 +66,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
             return false;
         }
 
-        return !! this.provider.search[this.field].find(model => item[this.uniqueKey] == model);
+        return !! this.provider.search[this.field].find(model => angular.equals(item[this.uniqueKey], model));
     }
 
     displayLabel() {
@@ -72,7 +75,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
             return this.placeholder;
         }
 
-        if (this.provider.search[this.field].length == 0) {
+        if (this.provider.search[this.field].length === 0) {
             return this.placeholder;
         }
 
@@ -82,7 +85,7 @@ export default class GridFilterMultiSelectController extends GridFilterSelectCon
 
         let values = [];
         this.provider.search[this.field].forEach(model => {
-            let item = this.items.find(item => item[this.uniqueKey] == model);
+            let item = this.items.find(item => angular.equals(item[this.uniqueKey], model));
             values.push(item[this.value]);
         });
 

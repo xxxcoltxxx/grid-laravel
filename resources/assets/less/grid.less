@@ -2,7 +2,8 @@
 
 .grid {
   .column-loop (@i) when (@i > 0) {
-    .column-hide-@{i} tr td:nth-child(@{i}), .column-hide-@{i} tr th:nth-child(@{i}) {
+    .column-hide-@{i} table:not(.column-hider-exclude) tr th:nth-child(@{i}):not([colspan]),
+    .column-hide-@{i} table:not(.column-hider-exclude) tr td:nth-child(@{i}) {
       display: none;
     }
     .column-loop(@i - 1);
@@ -23,14 +24,91 @@
         display: table !important;
       }
 
+      .icon-hive-navigation {
+        color: #f8ac59;
+      }
+
+      thead {
+        position: sticky;
+        top: 0px;
+      }
+
+      tr.search-result td {
+        background-color: #fcf8e3;
+        animation: none;
+      }
+
+      .icon-left-outline {
+        display: none;
+        margin-left: -17px;
+        width: 17px;
+        padding-right: 3px;
+      }
+
+      .align-items-center {
+        align-items: center;
+      }
+
+      tr.current {
+        .task-title-column {
+          font-weight: 700;
+        }
+
+        .icon-left-outline {
+          display: block;
+        }
+      }
+
       th[grid-column] {
         text-align: center;
       }
 
+      .grid-column {
+
+        .grid-column__center {
+          margin: auto;
+          padding-right: 14px;
+        }
+
+        .grid-column__filter {
+          float: right;
+          line-height: 18px;
+          font-size: 14px;
+          color: #337ab7;
+        }
+      }
+
+
       td {
         vertical-align: middle !important;
+
+
+        &.full-button {
+          padding: 0;
+
+          button {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            padding: 12px 0;
+            outline: none;
+            color: #337ab7;
+
+            &[disabled] {
+              color: #888888;
+              cursor: default;
+            }
+          }
+        }
       }
     }
+  }
+
+  .pagination-counts {
+    margin-left: 10px;
   }
 
   .grid-btn {
@@ -207,4 +285,16 @@
       border-left: none;
     }
   }
+}
+
+
+.animate-on-create td {
+  animation: colorchange 2s;
+  background-color: #ffffff;
+}
+
+@keyframes colorchange
+{
+  0%   {background: #d9edf7;}
+  100% {background: white;}
 }

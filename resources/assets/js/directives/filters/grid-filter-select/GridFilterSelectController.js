@@ -17,6 +17,7 @@ export default class GridFilterSelectController {
         this.search = '';
         this.filter_limit = 0;
         this.is_open = false;
+        this.reorderOnOpen = this.reorderOnOpen === undefined ? true : this.reorderOnOpen;
         this.placeholder = '--//--';
         this.initModel();
     }
@@ -43,6 +44,9 @@ export default class GridFilterSelectController {
     }
 
     reorder() {
+        if (! this.reorderOnOpen) {
+            return;
+        }
         this.items.sort((a, b) => {
             let has_a = this.provider.search[this.field] == a[this.uniqueKey];
             let has_b = this.provider.search[this.field] == b[this.uniqueKey];
@@ -93,7 +97,6 @@ export default class GridFilterSelectController {
         } else {
             this.provider.search[this.field] = null;
         }
-
 
         this.provider.load();
     }

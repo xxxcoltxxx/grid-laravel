@@ -17,4 +17,7 @@ return [
     'no-allowed-parent'   => 'Has not allowed items',
     'expand-all'          => 'Expand all',
     'collapse-all'        => 'Collapse all',
+    'load-more'           => 'Load more',
+    'prev-search-result'  => 'Previous search result',
+    'next-search-result'  => 'Next search result',
 ];

@@ -16,9 +16,17 @@ abstract class GridDataProvider
      */
     public $sorting_resolve;
     public $csv_template = null;
+    public $hidden_filters = [];
+
+    /**
+     * @var null|GridTable
+     */
+    public $grid_table = null;
 
     private $query;
     private $pagination;
+    /** @var null|array */
+    private $tree_limits = null;
     private $filters;
     private $default_sorting;
     private $default_filters;
@@ -27,6 +35,10 @@ abstract class GridDataProvider
     private $date_format;
     private $dates;
     private $count;
+    private $fast_filters = [];
+
+    const LIMIT_VISIBLE = 'LIMIT_VISIBLE';
+    const LIMIT_LOADING = 'LIMIT_LOADING';
 
     /**
      * @var string Название грида
@@ -66,23 +78,6 @@ abstract class GridDataProvider
         return new GridPagination();
     }
 
-    /**
-     *  Получение кол-ва страниц
-     * @return integer
-     */
-    final public function getCount()
-    {
-        if (is_null($this->count)) {
-            $this->count = $this->count();
-        }
-        return $this->count;
-    }
-
-    protected function count()
-    {
-        return $this->getQuery()->count();
-    }
-
 
     /**
      * Получение класса пагинации
@@ -95,6 +90,53 @@ abstract class GridDataProvider
             $this->pagination = $this->pagination();
         }
         return $this->pagination;
+    }
+
+
+    /**
+     * Пагинация
+     *
+     * @return array
+     */
+    protected function treeLimits()
+    {
+        return [
+            static::LIMIT_VISIBLE => 50,
+            static::LIMIT_LOADING => 25
+        ];
+    }
+
+
+    /**
+     * Получение класса пагинации
+     *
+     * @return array
+     */
+    final public function getTreeLimits()
+    {
+        if (is_null($this->tree_limits)) {
+            $this->tree_limits = $this->treeLimits();
+        }
+
+        return $this->tree_limits;
+    }
+
+    protected function count()
+    {
+        return $this->getQuery()->count();
+    }
+
+
+    /**
+     *  Получение кол-ва страниц
+     * @return integer
+     */
+    final public function getCount()
+    {
+        if (is_null($this->count)) {
+            $this->count = $this->count();
+        }
+        return $this->count;
     }
 
 
@@ -290,6 +332,55 @@ abstract class GridDataProvider
         return $filters;
     }
 
+
+    /**
+     * Возвращает список быстрых фильтров или берет их из кеша
+     *
+     * @return GridFastFilter[]
+     */
+    final public function getFastFilters()
+    {
+        if (is_null($this->fast_filters)) {
+            $this->fast_filters = $this->fastFilters();
+        }
+
+        return $this->fastFilters();
+    }
+
+
+    /**
+     * Возвращает список быстрых фильтров
+     *
+     * @return array
+     */
+    protected function fastFilters()
+    {
+        return [];
+    }
+
+
+    /**
+     * Возвращает массив маппинга для построения дерева (ключи id, parent_id, allowed)
+     *
+     * @return array
+     */
+    public function tree()
+    {
+        return [];
+    }
+
+
+    /**
+     * Возвращает массив id, которые подходят под результаты поиска
+     *
+     * @return array
+     */
+    public function treeFilter()
+    {
+        return [];
+    }
+
+
     /**
      * Метод для конвертации полученных из БД данных в данные, которые должны вернуться для грида
      *
@@ -332,5 +423,33 @@ abstract class GridDataProvider
     final public function getName()
     {
         return $this->name;
+    }
+
+    public function getCsvName()
+    {
+        return $this->getName() . ' ' . Carbon::now()->toDateTimeString();
+    }
+
+    final protected function buildQuery()
+    {
+        $searches = $this->grid_table->getRequestData('search');
+        $this->grid_table->buildQuery($searches);
+    }
+
+    public function filtersCount()
+    {
+        $filter_counts = [];
+        foreach ($this->getFastFilters() as $filter) {
+            $data_provider = clone $this;
+            $grid = new GridTable($data_provider);
+            $grid->buildQuery($filter->search);
+
+            $filter_counts[] = [
+                'alias'  => $filter->alias,
+                'count'  => $data_provider->count(),
+            ];
+        }
+
+        return $filter_counts;
     }
 }

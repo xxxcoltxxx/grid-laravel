@@ -7,7 +7,9 @@ import Column from "../../entities/Column";
  */
 export default class GridColumnController {
     constructor() {
-        this.provider.columns.push(new Column(this.field, this.title, !! this.defaultHidden));
+        if (! this.provider.columns.find(column => column.field == this.field)) {
+            this.provider.columns.push(new Column(this.field, this.title, !!this.defaultHidden));
+        }
     }
 
     sort() {
@@ -16,5 +18,23 @@ export default class GridColumnController {
         }
         this.provider.sorting.field = this.field;
         this.provider.load();
+    }
+
+    filtered() {
+        var value = this.provider.search[this.field];
+
+        if (! value) {
+            return false;
+        }
+
+        if (value instanceof Array) {
+            return value.length;
+        }
+
+        if (typeof value === 'object' && value.hasOwnProperty('startDate')) {
+            return value.startDate;
+        }
+
+        return !! value;
     }
 }

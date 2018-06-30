@@ -16,6 +16,7 @@ export default class GridFilterSelectDirective extends GridFilter {
             valuesText: '@',
             hideResetButton: '<',
             hideLiveSearch: '<',
+            reorderOnOpen: '<'
         };
 
         this.controller = GridFilterSelectController;
@@ -26,7 +27,7 @@ export default class GridFilterSelectDirective extends GridFilter {
             <span class="grid-select">
                 <div class="grid-select__label-container">
                     <div class="grid-select__label" ng-click="selectCtrl.toggleList()">
-                        <span class="grid-select__title">{{ selectCtrl.displayLabel() }}</span>
+                        <span class="grid-select__title" ng-bind="selectCtrl.displayLabel()"></span>
                         <span class="grid-select__caret"><i class="caret"></i></span>
                     </div>
                     <div class="grid-label__clear" ng-click="selectCtrl.resetToDefaults()" ng-if="! selectCtrl.hideResetButton">
@@ -43,7 +44,7 @@ export default class GridFilterSelectDirective extends GridFilter {
                             <div when-scroll-ends="selectCtrl.scrolling()" class="grid-select__list">
                                 <div class="grid-select__list-item" ng-click="selectCtrl.toggle(item)" ng-repeat="item in selectCtrl.items | filter: selectCtrl.search | limitTo: selectCtrl.filter_limit">
                                     <i class="fa fa-check grid-select__list-item-check" ng-class="{'invisible': ! selectCtrl.selected(item)}"></i>
-                                    <span class="grid-select__list-item-value">{{:: item[selectCtrl.value] }}</span>
+                                    <span class="grid-select__list-item-value" ng-bind=":: item[selectCtrl.value]"></span>
                                 </div>
                             </div>
                         </div>
