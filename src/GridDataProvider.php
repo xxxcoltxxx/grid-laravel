@@ -15,6 +15,7 @@ abstract class GridDataProvider
      * @var array Соответствие алиаса столбца в grid столбцу в БД для сортировки
      */
     public $sorting_resolve;
+    public $csv_template = null;
 
     private $query;
     private $pagination;
@@ -284,7 +285,7 @@ abstract class GridDataProvider
     {
         $filters = [];
         foreach ($this->getDates() as $field) {
-            array_set($filters, $field, ['startDate' => null, 'endDate' => null]);
+            $filters[$field] = ['startDate' => null, 'endDate' => null];
         }
         return $filters;
     }

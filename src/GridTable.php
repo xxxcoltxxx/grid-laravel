@@ -37,7 +37,7 @@ class GridTable
         $filters = $this->data_provider->getFilters();
         foreach ($searches as $alias => $search) {
             $alias = $prefix . $alias;
-            if (! is_numeric($search) && ! is_bool($search) && empty($search)) {
+            if (! is_numeric($search) && ! is_bool($search) && $search == '') {
                 continue;
             }
 
@@ -267,5 +267,36 @@ class GridTable
     private function encodeField($field)
     {
         return str_replace('.', ':', $field);
+    }
+
+    public function response($type)
+    {
+        switch ($type) {
+            case 'tree':
+                return $this->data_provider->tree();
+            case 'config':
+                return [
+                    'name' => $this->data_provider->getName(),
+                    'pagination' => $this->data_provider->getPagination(),
+                    'sorting' => $this->data_provider->getDefaultSorting(),
+                    'default_filters' => $this->data_provider->getDefaultFilters()
+                ];
+            case 'json':
+                $data = $this->getData();
+
+                return [
+                    'items' => $data['data'],
+                    'sorting' => $this->getRequestData('sorting', $this->getSorting()),
+                    'pagination' => [
+                        'total' => $data['total'],
+                        'page' => $page = $this->getRequestData('pagination', 1, 'current_page'),
+                        'limit' => $data['limit']
+                    ]
+                ];
+            case 'csv':
+                return $this->getCSV($this->data_provider->getName() . ' ' . Carbon::now()->toDateTimeString(), $this->data_provider->csv_template);
+            default:
+                throw new \Exception('Wrong type', 400);
+        }
     }
 }
